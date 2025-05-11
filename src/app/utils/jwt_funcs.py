@@ -1,0 +1,73 @@
+from fastapi import Form, HTTPException, Depends
+from fastapi.security import OAuth2PasswordBearer
+from jwt import InvalidTokenError
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.database import get_session
+from app.database.crud.admin_crud import get_admin_from_db_by_uid
+from app.database.models import User, Admin
+from app.utils import jwt_utils
+from app.database.crud import (
+    get_user_from_db_by_uid,
+    get_user_from_db_by_username,
+    get_admin_from_db_by_username,
+)
+
+from app.utils.exceptions import EXC_401_INVALID_USERNAME_OR_PASSWORD, EXC_403_INVALID_TOKEN
+
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl='/user/sign-in')
+
+
+async def validate_auth_user(
+    session: AsyncSession = Depends(get_session),
+    username: str = Form(),
+    password: str = Form(),
+) -> Admin | User:
+    user_from_db = await get_user_from_db_by_username(session, username)
+    admin_from_db = await get_admin_from_db_by_username(session, username)
+
+    if user_from_db:
+        if jwt_utils.validate_password(password, user_from_db.password):
+            return user_from_db
+    if admin_from_db:
+        if jwt_utils.validate_password(password, admin_from_db.password):
+            return admin_from_db
+    raise EXC_401_INVALID_USERNAME_OR_PASSWORD
+
+
+def get_current_token_payload(
+    token: str = Depends(oauth2_scheme)
+):
+    try:
+        return jwt_utils.decode_jwt(token=token)
+    except InvalidTokenError as e:
+        raise HTTPException(
+            status_code=401,
+            detail=f'Invalid token error: {e}'
+        )
+
+
+async def get_current_auth_user(
+    payload: dict = Depends(get_current_token_payload),
+    session: AsyncSession = Depends(get_session),
+) -> User:
+    user_id_from_token: str = payload.get('sub')
+
+    user_from_db = await get_user_from_db_by_uid(session, user_id_from_token)
+    if not user_from_db:
+        raise EXC_403_INVALID_TOKEN
+    if not user_from_db.active:
+        raise EXC_403_INVALID_TOKEN
+    return user_from_db
+
+
+async def get_current_auth_admin(
+    payload: dict = Depends(get_current_token_payload),
+    session: AsyncSession = Depends(get_session),
+) -> Admin:
+    admin_id_from_token: str = payload.get('sub')
+
+    admin_from_db = await get_admin_from_db_by_uid(session, admin_id_from_token)
+    if admin_from_db:
+        return admin_from_db
+    raise EXC_403_INVALID_TOKEN

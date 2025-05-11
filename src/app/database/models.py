@@ -1,0 +1,159 @@
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy import (
+    Table,
+    Column,
+    ForeignKey,
+    String,
+    TIMESTAMP
+)
+from sqlalchemy.sql import func
+
+from app.database.base import Base
+from app.schemas import BookOwnedSchema
+from app.schemas.user_schemas import UserActionsGetSchema
+
+
+user_books_table = Table(
+    'user_books',
+    Base.metadata,
+    Column('user_id', ForeignKey('users.id'), primary_key=True),
+    Column('book_id', ForeignKey('books.id'), primary_key=True)
+)
+
+
+class Book(Base):
+    __tablename__ = 'books'
+    id: Mapped[int] = mapped_column(unique=True, primary_key=True, autoincrement=True)
+    title: Mapped[str] = mapped_column(nullable=False, index=True)
+    author: Mapped[str] = mapped_column(nullable=False, index=True)
+    genre: Mapped[str] = mapped_column(nullable=True, index=True)
+    year: Mapped[int] = mapped_column(nullable=False, default=0)
+    description: Mapped[str] = mapped_column(default='')
+    price: Mapped[int] = mapped_column(nullable=False, index=True)
+    times_bought: Mapped[int] = mapped_column(nullable=False, default=0)
+    times_returned: Mapped[int] = mapped_column(nullable=False, default=0)
+    rating: Mapped[float] = mapped_column(nullable=False, default=0, index=True)
+
+    buyers: Mapped[list["User"]] = relationship(
+        secondary=user_books_table,
+        back_populates="bought_books"
+    )
+
+    def to_dict(self):
+        return {
+            "title": self.title,
+            "author": self.author,
+            "genre": self.genre,
+            "year": self.year,
+            "description": self.description,
+            "price": self.price,
+            "times_bought": self.times_bought,
+            "times_returned": self.times_returned,
+            "rating": self.rating,
+        }
+
+
+class Account(Base):
+    __tablename__ = 'accounts'
+    id: Mapped[int] = mapped_column(unique=True, primary_key=True, autoincrement=True)
+    username: Mapped[str] = mapped_column(unique=True, nullable=False)
+    password: Mapped[str] = mapped_column(nullable=False)
+    role: Mapped[str] = mapped_column(nullable=False)
+    type: Mapped[str] = mapped_column(nullable=False)
+    __mapper_args__ = {'polymorphic_on': type, 'polymorphic_identity': 'account'}
+
+
+class Admin(Account):
+    __tablename__ = 'admins'
+    id: Mapped[int] = mapped_column(ForeignKey('accounts.id'), primary_key=True)
+    admin_id: Mapped[str] = mapped_column(String, unique=True, nullable=False)
+
+    __mapper_args__ = {'polymorphic_identity': 'admin'}
+
+    def to_dict(self):
+        return {
+            'admin_id': self.admin_id,
+            'username': self.username,
+            'role': self.role,
+        }
+
+
+class User(Account):
+    __tablename__ = 'users'
+    id: Mapped[int] = mapped_column(ForeignKey("accounts.id"), primary_key=True)
+    user_id: Mapped[str] = mapped_column(String, unique=True, nullable=False)
+    money: Mapped[int] = mapped_column(nullable=False, default=0, index=True)
+    active: Mapped[bool] = mapped_column(nullable=False, default=True)  # False if deleted
+
+    __mapper_args__ = {'polymorphic_identity': 'user'}
+
+    bought_books: Mapped[list['Book']] = relationship(
+        secondary=user_books_table,
+        back_populates='buyers'
+    )
+
+    user_actions: Mapped[list['UserActions']] = relationship(back_populates='user')
+
+    async def to_dict(self, session: AsyncSession):
+        await session.refresh(self)
+        owned_books = [
+            BookOwnedSchema(
+                title=book.title,
+                author=book.author,
+                genre=book.genre,
+                year=book.year,
+                description=book.description,
+                price=book.price,
+                times_bought=book.times_bought,
+                times_returned=book.times_returned,
+                rating=book.rating,
+            )
+            for book in self.bought_books
+        ]
+        actions_history = [
+            UserActionsGetSchema(
+                user_id=action.user_id,
+                action_type=action.action_type,
+                details=action.details,
+                total=action.total,
+                timestamp=action.timestamp,
+            )
+            for action in self.user_actions
+        ]
+        return {
+            'user_id': self.user_id,
+            'username': self.username,
+            'role': self.role,
+            'money': self.money,
+            'bought_books': owned_books,
+            'actions_history': actions_history,
+        }
+
+
+class UserActions(Base):
+    __tablename__ = 'user_actions'
+    id: Mapped[int] = mapped_column(unique=True, primary_key=True, autoincrement=True)
+    user_id: Mapped[str] = mapped_column(
+        String,
+        ForeignKey('users.user_id'),
+        nullable=False
+    )
+    action_type: Mapped[str] = mapped_column(nullable=False)
+    details: Mapped[str] = mapped_column(nullable=False)
+    total: Mapped[int] = mapped_column(nullable=True)
+    timestamp: Mapped[TIMESTAMP] = mapped_column(
+        TIMESTAMP, server_default=func.now(), nullable=False
+    )
+
+    user: Mapped['User'] = relationship(back_populates='user_actions')
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'user_id': self.user_id,
+            'action_type': self.action_type,
+            'details': self.details,
+            'total': self.total,
+            'timestamp': self.timestamp
+        }

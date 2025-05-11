@@ -1,0 +1,16 @@
+/venv
+.idea/
+.env
+*.pem
+
+__pycache__/
+*.py[cod]
+.log
+
+docker-compose.override.yml
+.env.docker
+volumes/
+tmp/
+
+backup.sql
+/certs
