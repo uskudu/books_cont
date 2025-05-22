@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 from app.schemas import BookOwnedSchema
 from app.schemas.account_schemas import AccountSchema
@@ -20,6 +20,10 @@ class AdminGetUserActionsSchema(BaseModel):
     bought_books: list[BookOwnedSchema]
     actions_history: list[UserActionsGetSchema]
 
+    model_config = ConfigDict(from_attributes=True)
+
 
 class AdminGetUsersListSchema(BaseModel):
     users: list[AdminGetUserActionsSchema]
+
+    model_config = ConfigDict(from_attributes=True)

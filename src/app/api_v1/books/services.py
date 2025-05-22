@@ -1,6 +1,5 @@
 import re
 
-from fastapi import HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -49,5 +48,6 @@ async def get_all_books(
 async def get_book(
     session: AsyncSession,
     book_id: int,
-) -> Book:
-    return await get_book_from_db(session, book_id)
+) -> BookSchema:
+    book_from_db = await get_book_from_db(session, book_id)
+    return BookSchema.model_validate(book_from_db)

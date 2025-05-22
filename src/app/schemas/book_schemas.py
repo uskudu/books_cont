@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict
 
 
 class BookSchema(BaseModel):
@@ -11,6 +11,8 @@ class BookSchema(BaseModel):
     times_bought: int = 0
     times_returned: int = 0
     rating: float = 0
+
+    model_config = ConfigDict(from_attributes=True)
 
 
 class BookAddSchema(BookSchema):
@@ -28,6 +30,8 @@ class BookEditSchema(BaseModel):
     times_returned: int | None = None
     rating: float | None = None
 
+    model_config = ConfigDict(from_attributes=True)
+
 
 class BookFilterSchema(BaseModel):
     title: str | None = None
@@ -44,3 +48,5 @@ class BookFilterSchema(BaseModel):
     times_returned_max: int | None = None
     rating_min: float | None = None
     rating_max: float | None = None
+
+    model_config = ConfigDict(from_attributes=True)

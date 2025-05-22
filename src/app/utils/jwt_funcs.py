@@ -2,14 +2,11 @@ from fastapi import Form, HTTPException, Depends, status
 from fastapi.security import OAuth2PasswordBearer
 from jwt import InvalidTokenError
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
 
 from app.database import get_session
 from app.database.models import User, Admin
 from app.utils import jwt_utils
-from app.api_v1.admin.crud import (
-    get_admin_from_db_by_username,
-    get_admin_from_db_by_uid,
-)
 from app.api_v1.users.crud import (
     get_user_from_db_by_uid,
     get_user_from_db_by_username,
@@ -17,6 +14,14 @@ from app.api_v1.users.crud import (
 
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/user/sign-in")
+
+
+async def get_admin_from_db_by_username(
+    session: AsyncSession,
+    username: str,
+) -> Admin | None:
+    admin = await session.execute(select(Admin).where(Admin.username == username))
+    return admin.scalar_one_or_none()
 
 
 async def validate_auth_user(
@@ -68,9 +73,12 @@ async def get_current_auth_admin(
 ) -> Admin:
     admin_id_from_token: str = payload.get("sub")
 
-    admin_from_db = await get_admin_from_db_by_uid(session, admin_id_from_token)
-    if admin_from_db:
-        return admin_from_db
+    admin_from_db = await session.execute(
+        select(Admin).where(Admin.admin_id == admin_id_from_token)
+    )
+    admin = admin_from_db.scalar_one_or_none()
+    if admin:
+        return admin
     raise HTTPException(
         status_code=status.HTTP_403_FORBIDDEN,
         detail="Invalid token: you do not have access to this function",

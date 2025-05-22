@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 
 from app.schemas.account_schemas import AccountSchema
 
@@ -15,6 +15,8 @@ class BookOwnedSchema(BaseModel):
     times_bought: int
     times_returned: int
     rating: float
+
+    model_config = ConfigDict(from_attributes=True)
 
 
 class UserSchema(AccountSchema):
@@ -36,6 +38,8 @@ class UserActionsGetSchema(BaseModel):
     total: int | None
     timestamp: datetime
 
+    model_config = ConfigDict(from_attributes=True)
+
 
 class UserGetSelfSchema(BaseModel):
     username: str
@@ -43,10 +47,16 @@ class UserGetSelfSchema(BaseModel):
     bought_books: list[BookOwnedSchema]
     actions_history: list[UserActionsGetSchema]
 
+    model_config = ConfigDict(from_attributes=True)
+
 
 class UserDeleteSchema(BaseModel):
     password: str
 
+    model_config = ConfigDict(from_attributes=True)
+
 
 class UserAddMoneySchema(BaseModel):
     amount: int = Field(lt=2_147_483_648, gt=0)
+
+    model_config = ConfigDict(from_attributes=True)
