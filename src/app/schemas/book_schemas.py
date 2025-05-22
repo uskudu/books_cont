@@ -5,7 +5,7 @@ class BookSchema(BaseModel):
     title: str
     author: str
     genre: str
-    description: str = ''
+    description: str = ""
     year: int
     price: int
     times_bought: int = 0
@@ -18,7 +18,6 @@ class BookAddSchema(BookSchema):
 
 
 class BookEditSchema(BaseModel):
-    book_id: int = Field(lt=2_147_483_648, gt=0)
     title: str | None = None
     author: str | None = None
     genre: str | None = None
@@ -28,10 +27,6 @@ class BookEditSchema(BaseModel):
     times_bought: int | None = None
     times_returned: int | None = None
     rating: float | None = None
-
-
-class BookGetOneSchema(BaseModel):
-    book_id: int
 
 
 class BookFilterSchema(BaseModel):

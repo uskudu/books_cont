@@ -8,10 +8,5 @@ class AccountSchema(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
-
-class AccountSignupSchema(AccountSchema):
-    pass
-
-
 class AccountSigninSchema(AccountSchema):
     pass

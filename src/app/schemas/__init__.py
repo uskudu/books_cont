@@ -1,18 +1,15 @@
 from app.schemas.account_schemas import (
     AccountSchema,
-    AccountSignupSchema,
     AccountSigninSchema,
 )
 from app.schemas.user_schemas import (
     UserSchema,
     UserSignupSchema,
-    UserSigninSchema,
     UserGetSchema,
     UserGetSelfSchema,
     UserDeleteSchema,
     UserAddMoneySchema,
-    UserChangePasswordSchema,
-    UsersActivityGetSchema, BookOwnedSchema,
+    BookOwnedSchema,
 )
 from app.schemas.admin_schemas import (
     AdminSchema,
@@ -21,7 +18,6 @@ from app.schemas.admin_schemas import (
 
 from app.schemas.book_schemas import (
     BookSchema,
-    BookGetOneSchema,
     BookFilterSchema,
     BookAddSchema,
     BookEditSchema,

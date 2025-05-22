@@ -25,10 +25,6 @@ class UserSignupSchema(UserSchema):
     pass
 
 
-class UserSigninSchema(UserSchema):
-    pass
-
-
 class UserGetSchema(UserSchema):
     pass
 
@@ -54,18 +50,3 @@ class UserDeleteSchema(BaseModel):
 
 class UserAddMoneySchema(BaseModel):
     amount: int = Field(lt=2_147_483_648, gt=0)
-
-
-class UserChangePasswordSchema(BaseModel):
-    old_password: str
-    new_password: str
-
-
-class UsersActivityGetSchema(BaseModel):
-    user_id: str
-    username: str
-    created_at: str
-    times_signed_in: int
-    add_money: dict
-    times_bought_books: int
-    times_returned_books: int

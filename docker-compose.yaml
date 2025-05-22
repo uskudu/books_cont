@@ -1,29 +1,25 @@
 services:
   web:
     build: .
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
     ports:
       - "8000:8000"
     volumes:
       - ./src:/app
     env_file:
       - .env
-    environment:
-      - DATABASE_URL=postgresql+asyncpg://${DB_USER}:${DB_PASSWORD}@db:5432/${DB_NAME}
-      - REDIS_URL=redis://redis:6379/0
     depends_on:
       - db
       - redis
 
   db:
     image: postgres:13-alpine
-    environment:
-      - POSTGRES_DB=${DB_NAME}
-      - POSTGRES_USER=${DB_USER}
-      - POSTGRES_PASSWORD=${DB_PASSWORD}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
+    env_file:
+      - .env
 
   pgadmin:
     image: dpage/pgadmin4
@@ -37,8 +33,6 @@ services:
 
   redis:
     image: redis:alpine
-    ports:
-      - "6379:6379"
     volumes:
       - redis_data:/data
 

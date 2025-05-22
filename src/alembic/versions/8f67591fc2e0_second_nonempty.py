@@ -1,8 +1,8 @@
-"""first
+"""second nonempty
 
-Revision ID: b08a199d70ef
-Revises: 
-Create Date: 2025-05-10 14:48:52.515004
+Revision ID: 8f67591fc2e0
+Revises: a61a45c72cc7
+Create Date: 2025-05-16 13:09:41.229081
 
 """
 from typing import Sequence, Union
@@ -12,8 +12,8 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = 'b08a199d70ef'
-down_revision: Union[str, None] = None
+revision: str = '8f67591fc2e0'
+down_revision: Union[str, None] = 'a61a45c72cc7'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
@@ -32,23 +32,20 @@ def upgrade() -> None:
     sa.UniqueConstraint('username')
     )
     op.create_table('books',
-    sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
+    sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('title', sa.String(), nullable=False),
     sa.Column('author', sa.String(), nullable=False),
-    sa.Column('genre', sa.String(), nullable=True),
+    sa.Column('genre', sa.String(), nullable=False),
     sa.Column('year', sa.Integer(), nullable=False),
     sa.Column('description', sa.String(), nullable=False),
     sa.Column('price', sa.Integer(), nullable=False),
     sa.Column('times_bought', sa.Integer(), nullable=False),
     sa.Column('times_returned', sa.Integer(), nullable=False),
     sa.Column('rating', sa.Float(), nullable=False),
-    sa.PrimaryKeyConstraint('id'),
-    sa.UniqueConstraint('id')
+    sa.PrimaryKeyConstraint('id')
     )
     op.create_index(op.f('ix_books_author'), 'books', ['author'], unique=False)
-    op.create_index(op.f('ix_books_genre'), 'books', ['genre'], unique=False)
     op.create_index(op.f('ix_books_price'), 'books', ['price'], unique=False)
-    op.create_index(op.f('ix_books_rating'), 'books', ['rating'], unique=False)
     op.create_index(op.f('ix_books_title'), 'books', ['title'], unique=False)
     op.create_table('admins',
     sa.Column('id', sa.Integer(), nullable=False),
@@ -68,15 +65,14 @@ def upgrade() -> None:
     )
     op.create_index(op.f('ix_users_money'), 'users', ['money'], unique=False)
     op.create_table('user_actions',
-    sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
+    sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('user_id', sa.String(), nullable=False),
     sa.Column('action_type', sa.String(), nullable=False),
     sa.Column('details', sa.String(), nullable=False),
-    sa.Column('total', sa.Integer(), nullable=True),
+    sa.Column('total', sa.Integer(), nullable=False),
     sa.Column('timestamp', sa.TIMESTAMP(), server_default=sa.text('now()'), nullable=False),
     sa.ForeignKeyConstraint(['user_id'], ['users.user_id'], ),
-    sa.PrimaryKeyConstraint('id'),
-    sa.UniqueConstraint('id')
+    sa.PrimaryKeyConstraint('id')
     )
     op.create_table('user_books',
     sa.Column('user_id', sa.Integer(), nullable=False),
@@ -97,9 +93,7 @@ def downgrade() -> None:
     op.drop_table('users')
     op.drop_table('admins')
     op.drop_index(op.f('ix_books_title'), table_name='books')
-    op.drop_index(op.f('ix_books_rating'), table_name='books')
     op.drop_index(op.f('ix_books_price'), table_name='books')
-    op.drop_index(op.f('ix_books_genre'), table_name='books')
     op.drop_index(op.f('ix_books_author'), table_name='books')
     op.drop_table('books')
     op.drop_table('accounts')
