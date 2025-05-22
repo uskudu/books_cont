@@ -6,12 +6,15 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.database import get_session
 from app.database.models import User, Admin
 from app.utils import jwt_utils
-from app.database.crud import (
-    get_user_from_db_by_uid,
-    get_user_from_db_by_username,
+from app.api_v1.admin.crud import (
     get_admin_from_db_by_username,
     get_admin_from_db_by_uid,
 )
+from app.api_v1.users.crud import (
+    get_user_from_db_by_uid,
+    get_user_from_db_by_username,
+)
+
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/user/sign-in")
 

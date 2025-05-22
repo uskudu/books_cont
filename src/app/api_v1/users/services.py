@@ -21,11 +21,8 @@ from app.schemas import (
     UserAddMoneySchema,
     BookSchema,
 )
-from app.database.crud import (
-    get_user_from_db_by_uid,
-    get_book_from_db,
-    get_user_from_db_by_username,
-)
+from app.api_v1.users.crud import get_user_from_db_by_uid, get_user_from_db_by_username
+from app.api_v1.books.crud import get_book_from_db
 
 
 async def sign_up(

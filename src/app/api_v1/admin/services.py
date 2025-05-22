@@ -1,13 +1,10 @@
-from typing import Any, Coroutine
-
-from celery.loaders.base import find_related_module
 from fastapi import HTTPException, status
 from sqlalchemy import select, delete
 from sqlalchemy.exc import SQLAlchemyError, IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from app.database.crud import get_book_from_db
+from app.api_v1.books.crud import get_book_from_db
 from app.database.models import Book, User, Admin
 
 from app.schemas import (
@@ -15,7 +12,6 @@ from app.schemas import (
     AdminSchema,
     BookAddSchema,
     BookEditSchema,
-    UserSchema,
 )
 
 from app.utils.jwt_utils import hash_password, generate_user_id
@@ -56,6 +52,7 @@ async def get_all_users(
             status_code=status.HTTP_404_NOT_FOUND, detail="No users found"
         )
     return [user.to_dict() for user in users]
+
 
 async def get_user_by_id(
     session: AsyncSession,

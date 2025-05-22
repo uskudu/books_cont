@@ -5,7 +5,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database.models import Book
-from app.database.crud import get_book_from_db
+from app.api_v1.books.crud import get_book_from_db
 from app.schemas import (
     BookSchema,
     BookFilterSchema,
