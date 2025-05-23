@@ -3,6 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import IntegrityError
 
 from app.database.models import User, UserActions
+from app.schemas.user_schemas import UserGetSchema
 from app.utils import jwt_utils
 from app.utils.jwt_utils import (
     create_user_access_token,
@@ -15,7 +16,7 @@ from app.schemas import (
     AccountSigninSchema,
     UserSchema,
     UserSignupSchema,
-    UserGetSchema,
+    UserGetVerifiedSchema,
     UserGetSelfSchema,
     UserDeleteSchema,
     UserAddMoneySchema,
@@ -28,7 +29,7 @@ from app.api_v1.books.crud import get_book_from_db
 async def sign_up(
     session: AsyncSession,
     data: UserSignupSchema,
-) -> User:
+) -> UserGetSchema:
     try:
         user_data_dict = data.model_dump()
         user_data_dict["password"] = hash_password(user_data_dict["password"])
@@ -49,7 +50,7 @@ async def sign_up(
 
         await session.commit()
         await session.refresh(user)
-        return user
+        return UserGetSchema.model_validate(user)
     except IntegrityError:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail="Username already taken"
@@ -59,7 +60,7 @@ async def sign_up(
 async def sign_in(
     session: AsyncSession,
     account: AccountSigninSchema,
-):
+) -> TokenInfoSchema:
     user = await get_user_from_db_by_username(session, account.username)
 
     if user:
@@ -78,38 +79,12 @@ async def sign_in(
     return TokenInfoSchema(access_token=access_token)
 
 
-async def delete_account(
-    session: AsyncSession,
-    data: UserDeleteSchema,
-    user_verifier: UserSchema,
-) -> dict[str, str]:
-    if not jwt_utils.validate_password(data.password, user_verifier.password):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid password"
-        )
-    user = await get_user_from_db_by_uid(session, user_verifier.user_id)
-    user.active = False  # delete user (deactivate)
-
-    # update user_actions in db
-    new_action = {
-        "user_id": user_verifier.user_id,
-        "action_type": "delete_account",
-        "details": "deleted account",
-        "total": None,
-    }
-    action = UserActions(**new_action)
-    session.add(action)
-    await session.commit()
-    return {"success": True, "message": "Account deleted"}
-
-
 async def get_my_data(
     session: AsyncSession,
-    user_verifier: UserGetSchema,
+    user_verifier: UserGetVerifiedSchema,
 ) -> UserGetSelfSchema:
-    user_dict = user_verifier.to_dict()
-    user_schema = UserGetSelfSchema.model_validate(user_dict)
-    return UserGetSelfSchema.model_validate(user_schema)
+    user = await get_user_from_db_by_uid(session, user_verifier.user_id)
+    return UserGetSelfSchema.model_validate(user)
 
 
 async def add_money(
@@ -119,6 +94,7 @@ async def add_money(
 ) -> dict[str, str]:
     user_from_db = await get_user_from_db_by_uid(session, user_verifier.user_id)
     user_from_db.money += data.amount
+    balance = user_from_db.money
 
     # update user_actions in db
     new_action = {
@@ -131,7 +107,7 @@ async def add_money(
     session.add(action)
 
     await session.commit()
-    return {"message": "Funds added"}
+    return {"message": "Funds added", "new balance": balance}
 
 
 async def buy_book(
@@ -173,7 +149,7 @@ async def buy_book(
     await session.commit()
     await session.refresh(book_from_db)
 
-    book_schema = BookSchema.model_validate(book_from_db, from_attributes=True)
+    book_schema = BookSchema.model_validate(book_from_db)
     return {"message": "process complete!", "bought": f"{book_schema.model_dump()}"}
 
 
@@ -213,5 +189,30 @@ async def return_book(
     await session.commit()
     await session.refresh(book_from_db)
 
-    book_schema = BookSchema.model_validate(book_from_db, from_attributes=True)
+    book_schema = BookSchema.model_validate(book_from_db)
     return {"message": "Process complete", "Returned": f"{book_schema.model_dump()}"}
+
+
+async def delete_account(
+    session: AsyncSession,
+    data: UserDeleteSchema,
+    user_verifier: UserSchema,
+) -> dict[str, str]:
+    if not jwt_utils.validate_password(data.password, user_verifier.password):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid password"
+        )
+    user = await get_user_from_db_by_uid(session, user_verifier.user_id)
+    user.active = False  # delete user (deactivate)
+
+    # update user_actions in db
+    new_action = {
+        "user_id": user_verifier.user_id,
+        "action_type": "delete_account",
+        "details": "deleted account",
+        "total": None,
+    }
+    action = UserActions(**new_action)
+    session.add(action)
+    await session.commit()
+    return {"success": True, "message": "Account deleted"}

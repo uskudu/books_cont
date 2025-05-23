@@ -27,8 +27,16 @@ class UserSignupSchema(UserSchema):
     pass
 
 
-class UserGetSchema(UserSchema):
+class UserGetVerifiedSchema(UserSchema):
     pass
+
+
+class UserGetSchema(BaseModel):
+    user_id: str
+    username: str
+    money: int
+
+    model_config = ConfigDict(from_attributes=True)
 
 
 class UserActionsGetSchema(BaseModel):
@@ -42,10 +50,11 @@ class UserActionsGetSchema(BaseModel):
 
 
 class UserGetSelfSchema(BaseModel):
+    user_id: str
     username: str
     money: int
-    bought_books: list[BookOwnedSchema]
-    actions_history: list[UserActionsGetSchema]
+    bought_books: list[BookOwnedSchema] = []
+    user_actions: list[UserActionsGetSchema] = []
 
     model_config = ConfigDict(from_attributes=True)
 

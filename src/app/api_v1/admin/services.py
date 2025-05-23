@@ -12,6 +12,10 @@ from app.schemas import (
     AdminSchema,
     BookAddSchema,
     BookEditSchema,
+    AdminGetSchema,
+    AdminGetUserSchema,
+    BookSchema,
+    BookGetSchema,
 )
 
 from app.utils.jwt_utils import hash_password, generate_user_id
@@ -20,7 +24,7 @@ from app.utils.jwt_utils import hash_password, generate_user_id
 async def sign_up(
     session: AsyncSession,
     data: AdminSignupSchema,
-) -> Admin:
+) -> AdminGetSchema:
     try:
         admin_data_dict = data.model_dump()
         admin_data_dict["password"] = hash_password(admin_data_dict["password"])
@@ -30,7 +34,7 @@ async def sign_up(
         session.add(admin)
         await session.commit()
         await session.refresh(admin)
-        return admin
+        return AdminGetSchema.model_validate(admin)
     except IntegrityError:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail="Username already taken"
@@ -40,7 +44,7 @@ async def sign_up(
 async def get_all_users(
     session: AsyncSession,
     admin_verifier: AdminSchema,
-) -> list[User]:
+) -> list[AdminGetUserSchema]:
     query = await session.execute(
         select(User)
         .options(selectinload(User.bought_books))
@@ -51,14 +55,14 @@ async def get_all_users(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="No users found"
         )
-    return [user.to_dict() for user in users]
+    return [AdminGetUserSchema.model_validate(user) for user in users]
 
 
 async def get_user_by_id(
     session: AsyncSession,
     user_id: int,
     admin_verifier: AdminSchema,
-) -> User:
+) -> AdminGetUserSchema:
     query = await session.execute(
         select(User)
         .where(User.id == user_id)
@@ -70,45 +74,33 @@ async def get_user_by_id(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
         )
-    return user
-    # return UserSchema.model_validate(user)
+    return AdminGetUserSchema.model_validate(user)
 
 
 async def get_all_admins(
     session: AsyncSession,
     admin_verifier: AdminSchema,
-) -> list[Admin]:
+) -> list[AdminGetSchema]:
     query = await session.execute(select(Admin))
     admins = query.scalars().all()
     if not admins:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="No admins found"
         )
-    return [admin.to_dict() for admin in admins]
+    return [AdminGetSchema.model_validate(admin) for admin in admins]
 
 
 async def add_book(
     session: AsyncSession,
     data: BookAddSchema,
     admin_verifier: AdminSchema,
-) -> dict[str, Book] | None:
+) -> dict[str, BookSchema]:
     book_data_dict = data.model_dump()
     book = Book(**book_data_dict)
     session.add(book)
     await session.commit()
     await session.refresh(book)
-    return {"Successfully added book": book}
-
-
-async def delete_book(
-    session: AsyncSession,
-    book_id: int,
-    admin_verifier: AdminSchema,
-) -> dict[str, Book] | None:
-    deleted_book = await get_book_from_db(session, book_id)
-    await session.execute(delete(Book).where(Book.id == book_id))
-    await session.commit()
-    return {"Successfully deleted book": deleted_book}
+    return {"Successfully added book": BookSchema.model_validate(book)}
 
 
 async def edit_book(
@@ -116,7 +108,7 @@ async def edit_book(
     book_id: int,
     data: BookEditSchema,
     admin_verifier: AdminSchema,
-) -> dict[str, Book] | None:
+) -> dict[str, BookSchema]:
     try:
         book_from_db = await get_book_from_db(session, book_id)
         if not book_from_db:
@@ -128,10 +120,21 @@ async def edit_book(
             setattr(book_from_db, key, value)
         await session.commit()
         await session.refresh(book_from_db)
-        return {"Successfully updated book": book_from_db}
+        return {"Successfully updated book": BookSchema.model_validate(book_from_db)}
     except SQLAlchemyError as e:
         await session.rollback()
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=str(e),
         )
+
+
+async def delete_book(
+    session: AsyncSession,
+    book_id: int,
+    admin_verifier: AdminSchema,
+) -> dict[str, BookSchema]:
+    deleted_book = await get_book_from_db(session, book_id)
+    await session.execute(delete(Book).where(Book.id == book_id))
+    await session.commit()
+    return {"Successfully deleted book": BookSchema.model_validate(deleted_book)}

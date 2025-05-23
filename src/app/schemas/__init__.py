@@ -6,6 +6,7 @@ from app.schemas.user_schemas import (
     UserSchema,
     UserSignupSchema,
     UserGetSchema,
+    UserGetVerifiedSchema,
     UserGetSelfSchema,
     UserDeleteSchema,
     UserAddMoneySchema,
@@ -14,10 +15,13 @@ from app.schemas.user_schemas import (
 from app.schemas.admin_schemas import (
     AdminSchema,
     AdminSignupSchema,
+    AdminGetSchema,
+    AdminGetUserSchema,
 )
 
 from app.schemas.book_schemas import (
     BookSchema,
+    BookGetSchema,
     BookFilterSchema,
     BookAddSchema,
     BookEditSchema,

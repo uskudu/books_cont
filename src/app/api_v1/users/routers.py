@@ -8,10 +8,12 @@ from app.schemas import (
     AccountSigninSchema,
     UserSchema,
     UserSignupSchema,
-    UserGetSchema,
+    UserGetVerifiedSchema,
     UserDeleteSchema,
     UserAddMoneySchema,
     UserGetSelfSchema,
+    UserGetSchema,
+    TokenInfoSchema,
 )
 from fastapi_cache.decorator import cache
 
@@ -25,7 +27,7 @@ router = APIRouter(
 async def sign_up(
     session: Annotated[get_session, Depends()],
     data: Annotated[UserSignupSchema, Depends()],
-):
+) -> UserGetSchema:
     return await services.sign_up(session, data)
 
 
@@ -33,25 +35,16 @@ async def sign_up(
 async def sign_in(
     session: Annotated[get_session, Depends()],
     account: AccountSigninSchema = Depends(validate_auth_user),
-):
+) -> TokenInfoSchema:
     return await services.sign_in(session, account)
 
 
-@router.delete("/me")
-async def delete_account(
-    data: Annotated[UserDeleteSchema, Depends()],
-    session: Annotated[get_session, Depends()],
-    user_verifier: UserSchema = Depends(get_current_auth_user),
-):
-    return await services.delete_account(session, data, user_verifier)
-
-
-# @cache(expire=60)
+@cache(expire=60)
 @router.get("/me", response_model=UserGetSelfSchema)
 async def get_my_data(
     session: Annotated[get_session, Depends()],
-    user_verifier: UserGetSchema = Depends(get_current_auth_user),
-):
+    user_verifier: UserGetVerifiedSchema = Depends(get_current_auth_user),
+) -> UserGetSelfSchema:
     return await services.get_my_data(session, user_verifier)
 
 
@@ -60,7 +53,7 @@ async def add_money(
     session: Annotated[get_session, Depends()],
     data: Annotated[UserAddMoneySchema, Depends()],
     user_verifier: UserSchema = Depends(get_current_auth_user),
-):
+) -> dict[str, str]:
     return await services.add_money(session, data, user_verifier)
 
 
@@ -69,7 +62,7 @@ async def buy_book(
     book_id: int,
     session: Annotated[get_session, Depends()],
     user_verifier: UserSchema = Depends(get_current_auth_user),
-):
+) -> dict[str, str]:
     return await services.buy_book(session, book_id, user_verifier)
 
 
@@ -78,5 +71,14 @@ async def return_book(
     session: Annotated[get_session, Depends()],
     book_id: int,
     user_verifier: UserSchema = Depends(get_current_auth_user),
-):
+) -> dict[str, str]:
     return await services.return_book(session, book_id, user_verifier)
+
+
+@router.delete("/me")
+async def delete_account(
+    data: Annotated[UserDeleteSchema, Depends()],
+    session: Annotated[get_session, Depends()],
+    user_verifier: UserSchema = Depends(get_current_auth_user),
+) -> dict[str, str]:
+    return await services.delete_account(session, data, user_verifier)

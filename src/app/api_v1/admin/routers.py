@@ -10,6 +10,9 @@ from app.schemas import (
     AdminSchema,
     BookAddSchema,
     BookEditSchema,
+    AdminGetSchema,
+    AdminGetUserSchema,
+    BookSchema,
 )
 from fastapi_cache.decorator import cache
 
@@ -23,16 +26,16 @@ router = APIRouter(
 async def sign_up(
     session: Annotated[get_session, Depends()],
     admin: Annotated[AdminSignupSchema, Depends()],
-):
+) -> AdminGetSchema:
     return await services.sign_up(session, admin)
 
 
 @router.get("/users")
-@cache(expire=60)
+# @cache(expire=60)
 async def get_all_users(
     session: Annotated[get_session, Depends()],
     admin_verifier: AdminSchema = Depends(get_current_auth_admin),
-):
+) -> list[AdminGetUserSchema]:
     return await services.get_all_users(session, admin_verifier)
 
 
@@ -42,23 +45,16 @@ async def get_user_by_id(
     session: Annotated[get_session, Depends()],
     user_id: int,
     admin_verifier: AdminSchema = Depends(get_current_auth_admin),
-):
+) -> AdminGetUserSchema:
     return await services.get_user_by_id(session, user_id, admin_verifier)
 
 
-def custom_key_builder(func, namespace, request, response, *args, **kwargs):
-    key = FastAPICache.get_prefix() + ":" + namespace
-    key += ":" + request.url.path
-    print(f"[KEY BUILDER] Cache key built: {key}")
-    return key
-
-
-@cache(expire=60, key_builder=custom_key_builder)
+@cache(expire=60)
 @router.get("/admins")
 async def get_all_admins(
     session: Annotated[get_session, Depends()],
     admin_verifier: AdminSchema = Depends(get_current_auth_admin),
-):
+) -> list[AdminGetSchema]:
     return await services.get_all_admins(session, admin_verifier)
 
 
@@ -67,17 +63,8 @@ async def add_book(
     session: Annotated[get_session, Depends()],
     data: Annotated[BookAddSchema, Depends()],
     admin_verifier: AdminSchema = Depends(get_current_auth_admin),
-):
+) -> dict[str, BookSchema]:
     return await services.add_book(session, data, admin_verifier)
-
-
-@router.delete("/books/{book_id}")
-async def delete_book(
-    session: Annotated[get_session, Depends()],
-    book_id: int,
-    admin_verifier: AdminSchema = Depends(get_current_auth_admin),
-):
-    return await services.delete_book(session, book_id, admin_verifier)
 
 
 @router.put("/books/{book_id}")
@@ -86,5 +73,14 @@ async def edit_book(
     book_id: int,
     data: Annotated[BookEditSchema, Depends()],
     admin_verifier: AdminSchema = Depends(get_current_auth_admin),
-):
+) -> dict[str, BookSchema]:
     return await services.edit_book(session, book_id, data, admin_verifier)
+
+
+@router.delete("/books/{book_id}")
+async def delete_book(
+    session: Annotated[get_session, Depends()],
+    book_id: int,
+    admin_verifier: AdminSchema = Depends(get_current_auth_admin),
+) -> dict[str, BookSchema]:
+    return await services.delete_book(session, book_id, admin_verifier)

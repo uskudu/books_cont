@@ -19,6 +19,10 @@ class BookAddSchema(BookSchema):
     pass
 
 
+class BookGetSchema(BookSchema):
+    id: int
+
+
 class BookEditSchema(BaseModel):
     title: str | None = None
     author: str | None = None

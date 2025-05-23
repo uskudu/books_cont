@@ -8,12 +8,13 @@ from app.api_v1.books.crud import get_book_from_db
 from app.schemas import (
     BookSchema,
     BookFilterSchema,
+    BookGetSchema,
 )
 
 
 async def get_all_books(
     session: AsyncSession, filters: BookFilterSchema
-) -> list[BookSchema]:
+) -> list[BookGetSchema]:
     query = await session.execute(select(Book))
     books = query.scalars().all()
     # Фильтрация по строковым полям (title, author, genre, description) с частичным совпадением
@@ -42,12 +43,12 @@ async def get_all_books(
             books = [book for book in books if getattr(book, field) >= min_val]
         if max_val is not None:
             books = [book for book in books if getattr(book, field) <= max_val]
-    return books
+    return [BookGetSchema.model_validate(book) for book in books]
 
 
 async def get_book(
     session: AsyncSession,
     book_id: int,
-) -> BookSchema:
+) -> BookGetSchema:
     book_from_db = await get_book_from_db(session, book_id)
-    return BookSchema.model_validate(book_from_db)
+    return BookGetSchema.model_validate(book_from_db)
