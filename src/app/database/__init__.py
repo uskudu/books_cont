@@ -3,7 +3,6 @@ from .db_helper import get_session
 
 from app.database.models import (
     Book,
-    Account,
     Admin,
     User,
     UserActions,

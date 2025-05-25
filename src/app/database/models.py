@@ -1,3 +1,5 @@
+import uuid
+
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy import Table, Column, ForeignKey, String, TIMESTAMP
 from sqlalchemy.sql import func
@@ -10,7 +12,7 @@ from app.schemas.user_schemas import UserActionsGetSchema
 user_books_table = Table(
     "user_books",
     Base.metadata,
-    Column("user_id", ForeignKey("users.id"), primary_key=True),
+    Column("user_id", ForeignKey("users.user_id"), primary_key=True),
     Column("book_id", ForeignKey("books.id"), primary_key=True),
 )
 
@@ -47,22 +49,14 @@ class Book(Base):
         }
 
 
-class Account(Base):
-    __tablename__ = "accounts"
-    id: Mapped[int] = mapped_column(unique=True, primary_key=True, autoincrement=True)
+class Admin(Base):
+    __tablename__ = "admins"
+    admin_id: Mapped[str] = mapped_column(
+        unique=True, primary_key=True, default=uuid.uuid4
+    )
     username: Mapped[str] = mapped_column(unique=True, nullable=False)
     password: Mapped[str] = mapped_column(nullable=False)
-    role: Mapped[str] = mapped_column(nullable=False)
-    type: Mapped[str] = mapped_column(nullable=False)
-    __mapper_args__ = {"polymorphic_on": type, "polymorphic_identity": "account"}
-
-
-class Admin(Account):
-    __tablename__ = "admins"
-    id: Mapped[int] = mapped_column(ForeignKey("accounts.id"), primary_key=True)
-    admin_id: Mapped[str] = mapped_column(String, unique=True, nullable=False)
-
-    __mapper_args__ = {"polymorphic_identity": "admin"}
+    role: Mapped[str] = mapped_column(default="admin")
 
     def to_dict(self):
         return {
@@ -72,16 +66,16 @@ class Admin(Account):
         }
 
 
-class User(Account):
+class User(Base):
     __tablename__ = "users"
-    id: Mapped[int] = mapped_column(ForeignKey("accounts.id"), primary_key=True)
-    user_id: Mapped[str] = mapped_column(String, unique=True, nullable=False)
-    money: Mapped[int] = mapped_column(nullable=False, default=0, index=True)
-    active: Mapped[bool] = mapped_column(
-        nullable=False, default=True
-    )  # False if deleted
-
-    __mapper_args__ = {"polymorphic_identity": "user"}
+    user_id: Mapped[str] = mapped_column(
+        unique=True, primary_key=True, default=uuid.uuid4
+    )
+    username: Mapped[str] = mapped_column(unique=True, nullable=False)
+    password: Mapped[str] = mapped_column(nullable=False)
+    role: Mapped[str] = mapped_column(default="user")
+    money: Mapped[int] = mapped_column(default=0)
+    active: Mapped[bool] = mapped_column(default=True)  # False if deleted
 
     bought_books: Mapped[list["Book"]] = relationship(
         secondary=user_books_table, back_populates="buyers"
@@ -116,7 +110,6 @@ class User(Account):
             for action in self.user_actions
         ]
         return {
-            "id": self.id,
             "user_id": self.user_id,
             "username": self.username,
             "role": self.role,

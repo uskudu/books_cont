@@ -4,10 +4,12 @@ import jwt
 import uuid
 
 from app.core.config import settings
-from app.schemas import AccountSchema
+from app.schemas import UserSchema, AdminSchema
 
-TOKEN_TYPE_FIELD = 'token_type'
-ACCESS_TOKEN_TYPE = 'access'
+# from app.schemas import AccountSchema
+
+TOKEN_TYPE_FIELD = "token_type"
+ACCESS_TOKEN_TYPE = "access"
 EXPIRE_MINUTES_PATH = settings.auth_jwt.access_token_expire_minutes
 
 
@@ -48,9 +50,7 @@ def decode_jwt(
 
 
 def create_jwt(
-    token_type: str,
-    token_data: dict,
-    expire_minutes: int = EXPIRE_MINUTES_PATH
+    token_type: str, token_data: dict, expire_minutes: int = EXPIRE_MINUTES_PATH
 ) -> str:
     jwt_payload = {TOKEN_TYPE_FIELD: token_type}
     jwt_payload.update(token_data)
@@ -60,11 +60,11 @@ def create_jwt(
     )
 
 
-def create_user_access_token(user: AccountSchema) -> str:
+def create_user_access_token(user: UserSchema) -> str:
     jwt_payload = {
-        'sub': user.user_id,
-        'username': user.username,
-        'role': user.role,
+        "sub": user.user_id,
+        "username": user.username,
+        "role": user.role,
     }
     return create_jwt(
         token_type=ACCESS_TOKEN_TYPE,
@@ -72,11 +72,12 @@ def create_user_access_token(user: AccountSchema) -> str:
         expire_minutes=EXPIRE_MINUTES_PATH,
     )
 
-def create_admin_access_token(admin: AccountSchema) -> str:
+
+def create_admin_access_token(admin: AdminSchema) -> str:
     jwt_payload = {
-        'sub': admin.admin_id,
-        'username': admin.username,
-        'role': admin.role,
+        "sub": admin.admin_id,
+        "username": admin.username,
+        "role": admin.role,
     }
     return create_jwt(
         token_type=ACCESS_TOKEN_TYPE,
@@ -88,8 +89,8 @@ def create_admin_access_token(admin: AccountSchema) -> str:
 def hash_password(
     password: str,
 ) -> str:
-    pwd = bcrypt.hashpw(password=password.encode('utf-8'), salt=bcrypt.gensalt())
-    return pwd.decode('utf-8')
+    pwd = bcrypt.hashpw(password=password.encode("utf-8"), salt=bcrypt.gensalt())
+    return pwd.decode("utf-8")
 
 
 def validate_password(
@@ -97,6 +98,6 @@ def validate_password(
     hashed_password: str,
 ) -> bool:
     return bcrypt.checkpw(
-        password=password.encode('utf-8'),
-        hashed_password=hashed_password.encode('utf-8')
+        password=password.encode("utf-8"),
+        hashed_password=hashed_password.encode("utf-8"),
     )

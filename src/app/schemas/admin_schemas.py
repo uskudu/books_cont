@@ -9,16 +9,16 @@ class AdminSchema(AccountSchema):
     pass
 
 
+class AdminSignupSchema(AdminSchema):
+    pass
+
+
 class AdminGetSchema(BaseModel):
     admin_id: str
     username: int
     role: str = "admin"
 
     model_config = ConfigDict(from_attributes=True)
-
-
-class AdminSignupSchema(AdminSchema):
-    pass
 
 
 class AdminGetUserSchema(BaseModel):

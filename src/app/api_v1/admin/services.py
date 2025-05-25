@@ -15,7 +15,6 @@ from app.schemas import (
     AdminGetSchema,
     AdminGetUserSchema,
     BookSchema,
-    BookGetSchema,
 )
 
 from app.utils.jwt_utils import hash_password, generate_user_id
