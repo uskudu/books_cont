@@ -52,7 +52,7 @@ class Book(Base):
 class Admin(Base):
     __tablename__ = "admins"
     admin_id: Mapped[str] = mapped_column(
-        unique=True, primary_key=True, default=uuid.uuid4
+        unique=True, primary_key=True, default=str(uuid.uuid4())
     )
     username: Mapped[str] = mapped_column(unique=True, nullable=False)
     password: Mapped[str] = mapped_column(nullable=False)
@@ -69,7 +69,7 @@ class Admin(Base):
 class User(Base):
     __tablename__ = "users"
     user_id: Mapped[str] = mapped_column(
-        unique=True, primary_key=True, default=uuid.uuid4
+        unique=True, primary_key=True, default=str(uuid.uuid4())
     )
     username: Mapped[str] = mapped_column(unique=True, nullable=False)
     password: Mapped[str] = mapped_column(nullable=False)

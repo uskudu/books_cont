@@ -27,8 +27,8 @@ async def sign_up(
     try:
         admin_data_dict = data.model_dump()
         admin_data_dict["password"] = hash_password(admin_data_dict["password"])
-        admin_data_dict["role"] = "admin"
-        admin_data_dict["admin_id"] = generate_user_id()
+        # admin_data_dict["role"] = "admin"
+        # admin_data_dict["admin_id"] = generate_user_id()
         admin = Admin(**admin_data_dict)
         session.add(admin)
         await session.commit()
