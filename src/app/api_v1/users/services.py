@@ -1,3 +1,5 @@
+import uuid
+
 from fastapi import HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import IntegrityError
@@ -34,6 +36,7 @@ async def sign_up(
     try:
         user_data_dict = data.model_dump()
         user_data_dict["password"] = hash_password(user_data_dict["password"])
+        user_data_dict["user_id"] = str(uuid.uuid4())
         user = User(**user_data_dict)
         session.add(user)
 

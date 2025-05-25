@@ -12,8 +12,10 @@ from app.schemas.user_schemas import UserActionsGetSchema
 user_books_table = Table(
     "user_books",
     Base.metadata,
-    Column("user_id", ForeignKey("users.user_id"), primary_key=True),
-    Column("book_id", ForeignKey("books.id"), primary_key=True),
+    Column(
+        "user_id", ForeignKey("users.user_id", ondelete="CASCADE"), primary_key=True
+    ),
+    Column("book_id", ForeignKey("books.id", ondelete="CASCADE"), primary_key=True),
 )
 
 

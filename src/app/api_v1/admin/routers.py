@@ -77,13 +77,10 @@ async def edit_book(
     return await services.edit_book(session, book_id, data, admin_verifier)
 
 
-@router.delete("/books/{book_id}", response_model=AdminDeletedBookResponseSchema)
+@router.delete("/books/{book_id}")
 async def delete_book(
     session: Annotated[get_session, Depends()],
     book_id: int,
     admin_verifier: AdminSchema = Depends(get_current_auth_admin),
-) -> AdminDeletedBookResponseSchema:
-    deleted_book = await services.delete_book(session, book_id, admin_verifier)
-    return AdminDeletedBookResponseSchema(
-        message="Successfully deleted book", book=deleted_book
-    )
+) -> dict[str, BookSchema]:
+    return await services.delete_book(session, book_id, admin_verifier)

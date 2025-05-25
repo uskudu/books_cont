@@ -5,6 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.api_v1.books.crud import get_book_from_db
+from app.database import user_books_table
 from app.database.models import Book, User, Admin
 from app.schemas.admin_schemas import (
     AdminSignupSchema,
@@ -127,8 +128,9 @@ async def delete_book(
     session: AsyncSession,
     book_id: int,
     admin_verifier: AdminSchema,
-) -> BookSchema:
+) -> dict[str, BookSchema]:
     deleted_book = await get_book_from_db(session, book_id)
     await session.execute(delete(Book).where(Book.id == book_id))
+    await session.execute(delete(user_books_table).where(Book.id == book_id))
     await session.commit()
-    return BookSchema.model_validate(deleted_book)
+    return {"Successfully deleted book": BookSchema.model_validate(deleted_book)}

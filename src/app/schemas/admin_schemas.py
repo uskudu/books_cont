@@ -32,6 +32,11 @@ class AdminGetUserSchema(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
+class AdminEditedBookResponseSchema(BaseModel):
+    message: str
+    book: BookSchema
+
+
 class AdminDeletedBookResponseSchema(BaseModel):
     message: str
     book: BookSchema
