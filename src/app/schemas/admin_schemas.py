@@ -1,8 +1,8 @@
 from pydantic import BaseModel, ConfigDict
 
-from app.schemas import BookOwnedSchema
+from app.schemas.book_schemas import BookSchema
 from app.schemas.account_schemas import AccountSchema
-from app.schemas.user_schemas import UserActionsGetSchema
+from app.schemas.user_schemas import UserActionsGetSchema, BookOwnedSchema
 
 
 class AdminSchema(AccountSchema):
@@ -30,3 +30,8 @@ class AdminGetUserSchema(BaseModel):
     user_actions: list[UserActionsGetSchema] = []
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class AdminDeletedBookResponseSchema(BaseModel):
+    message: str
+    book: BookSchema

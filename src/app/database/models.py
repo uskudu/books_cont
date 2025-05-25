@@ -5,7 +5,7 @@ from sqlalchemy import Table, Column, ForeignKey, String, TIMESTAMP
 from sqlalchemy.sql import func
 
 from app.database.base import Base
-from app.schemas import BookOwnedSchema
+from app.schemas.user_schemas import BookOwnedSchema
 from app.schemas.user_schemas import UserActionsGetSchema
 
 

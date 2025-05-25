@@ -6,18 +6,15 @@ from sqlalchemy.orm import selectinload
 
 from app.api_v1.books.crud import get_book_from_db
 from app.database.models import Book, User, Admin
-
-from app.schemas import (
+from app.schemas.admin_schemas import (
     AdminSignupSchema,
-    AdminSchema,
-    BookAddSchema,
-    BookEditSchema,
     AdminGetSchema,
+    AdminSchema,
     AdminGetUserSchema,
-    BookSchema,
 )
+from app.schemas.book_schemas import BookAddSchema, BookSchema, BookEditSchema
 
-from app.utils.jwt_utils import hash_password, generate_user_id
+from app.utils.jwt_utils import hash_password
 
 
 async def sign_up(
@@ -27,8 +24,6 @@ async def sign_up(
     try:
         admin_data_dict = data.model_dump()
         admin_data_dict["password"] = hash_password(admin_data_dict["password"])
-        # admin_data_dict["role"] = "admin"
-        # admin_data_dict["admin_id"] = generate_user_id()
         admin = Admin(**admin_data_dict)
         session.add(admin)
         await session.commit()
@@ -59,12 +54,12 @@ async def get_all_users(
 
 async def get_user_by_id(
     session: AsyncSession,
-    user_id: int,
+    user_id: str,
     admin_verifier: AdminSchema,
 ) -> AdminGetUserSchema:
     query = await session.execute(
         select(User)
-        .where(User.id == user_id)
+        .where(User.user_id == user_id)
         .options(selectinload(User.bought_books))
         .options(selectinload(User.user_actions))
     )
@@ -132,8 +127,8 @@ async def delete_book(
     session: AsyncSession,
     book_id: int,
     admin_verifier: AdminSchema,
-) -> dict[str, BookSchema]:
+) -> BookSchema:
     deleted_book = await get_book_from_db(session, book_id)
     await session.execute(delete(Book).where(Book.id == book_id))
     await session.commit()
-    return {"Successfully deleted book": BookSchema.model_validate(deleted_book)}
+    return BookSchema.model_validate(deleted_book)

@@ -2,9 +2,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from app.database.models import User, UserActions
-from app.schemas import UserSignupSchema
-from app.utils.jwt_utils import hash_password, generate_user_id
+from app.database.models import User
 
 
 async def get_user_from_db_by_username(

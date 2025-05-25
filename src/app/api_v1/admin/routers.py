@@ -1,20 +1,20 @@
 from typing import Annotated
 from fastapi import APIRouter, Depends
-from fastapi_cache import FastAPICache
 
 from app.api_v1.admin import services
 from app.database import get_session
 from app.utils.jwt_funcs import get_current_auth_admin
-from app.schemas import (
-    AdminSignupSchema,
-    AdminSchema,
-    BookAddSchema,
-    BookEditSchema,
-    AdminGetSchema,
-    AdminGetUserSchema,
-    BookSchema,
-)
+
 from fastapi_cache.decorator import cache
+
+from app.schemas.admin_schemas import (
+    AdminSignupSchema,
+    AdminGetSchema,
+    AdminSchema,
+    AdminGetUserSchema,
+    AdminDeletedBookResponseSchema,
+)
+from app.schemas.book_schemas import BookAddSchema, BookSchema, BookEditSchema
 
 router = APIRouter(
     prefix="/admin",
@@ -30,8 +30,8 @@ async def sign_up(
     return await services.sign_up(session, admin)
 
 
+@cache(expire=60)
 @router.get("/users")
-# @cache(expire=60)
 async def get_all_users(
     session: Annotated[get_session, Depends()],
     admin_verifier: AdminSchema = Depends(get_current_auth_admin),
@@ -43,7 +43,7 @@ async def get_all_users(
 @router.get("/users/{user_id}")
 async def get_user_by_id(
     session: Annotated[get_session, Depends()],
-    user_id: int,
+    user_id: str,
     admin_verifier: AdminSchema = Depends(get_current_auth_admin),
 ) -> AdminGetUserSchema:
     return await services.get_user_by_id(session, user_id, admin_verifier)
@@ -77,10 +77,13 @@ async def edit_book(
     return await services.edit_book(session, book_id, data, admin_verifier)
 
 
-@router.delete("/books/{book_id}")
+@router.delete("/books/{book_id}", response_model=AdminDeletedBookResponseSchema)
 async def delete_book(
     session: Annotated[get_session, Depends()],
     book_id: int,
     admin_verifier: AdminSchema = Depends(get_current_auth_admin),
-) -> dict[str, BookSchema]:
-    return await services.delete_book(session, book_id, admin_verifier)
+) -> AdminDeletedBookResponseSchema:
+    deleted_book = await services.delete_book(session, book_id, admin_verifier)
+    return AdminDeletedBookResponseSchema(
+        message="Successfully deleted book", book=deleted_book
+    )

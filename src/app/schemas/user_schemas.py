@@ -54,7 +54,6 @@ class UserGetSelfSchema(BaseModel):
     username: str
     money: int
     bought_books: list[BookOwnedSchema] = []
-    user_actions: list[UserActionsGetSchema] = []
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -65,7 +64,12 @@ class UserDeleteSchema(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
-class UserAddMoneySchema(BaseModel):
+class UserAddFundsSchema(BaseModel):
     amount: int = Field(lt=2_147_483_648, gt=0)
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class UserAddFundsResponseSchema(BaseModel):
+    message: str
+    new_balance: int

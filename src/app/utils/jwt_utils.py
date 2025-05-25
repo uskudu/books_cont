@@ -1,20 +1,12 @@
 from datetime import datetime, timezone, timedelta
 import bcrypt
 import jwt
-import uuid
-
 from app.core.config import settings
-from app.schemas import UserSchema, AdminSchema
-
-# from app.schemas import AccountSchema
+from app.schemas.account_schemas import AccountSchema
 
 TOKEN_TYPE_FIELD = "token_type"
 ACCESS_TOKEN_TYPE = "access"
 EXPIRE_MINUTES_PATH = settings.auth_jwt.access_token_expire_minutes
-
-
-def generate_user_id():
-    return str(uuid.uuid4())
 
 
 def encode_jwt(
@@ -60,7 +52,7 @@ def create_jwt(
     )
 
 
-def create_user_access_token(user: UserSchema) -> str:
+def create_user_access_token(user: AccountSchema) -> str:
     jwt_payload = {
         "sub": user.user_id,
         "username": user.username,
@@ -73,7 +65,7 @@ def create_user_access_token(user: UserSchema) -> str:
     )
 
 
-def create_admin_access_token(admin: AdminSchema) -> str:
+def create_admin_access_token(admin: AccountSchema) -> str:
     jwt_payload = {
         "sub": admin.admin_id,
         "username": admin.username,

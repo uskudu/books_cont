@@ -3,25 +3,26 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import IntegrityError
 
 from app.database.models import User, UserActions
-from app.schemas.user_schemas import UserGetSchema
+from app.schemas.jwt_schema import TokenInfoSchema
+from app.schemas.user_schemas import UserGetSchema, UserAddFundsResponseSchema
 from app.utils import jwt_utils
 from app.utils.jwt_utils import (
     create_user_access_token,
     create_admin_access_token,
     hash_password,
-    generate_user_id,
 )
-from app.schemas import (
-    TokenInfoSchema,
-    AccountSigninSchema,
+from app.schemas.user_schemas import (
     UserSchema,
     UserSignupSchema,
     UserGetVerifiedSchema,
     UserGetSelfSchema,
     UserDeleteSchema,
-    UserAddMoneySchema,
-    BookSchema,
+    UserAddFundsSchema,
 )
+from app.schemas.account_schemas import AccountSigninSchema
+from app.schemas.book_schemas import BookSchema
+
+
 from app.api_v1.users.crud import get_user_from_db_by_uid, get_user_from_db_by_username
 from app.api_v1.books.crud import get_book_from_db
 
@@ -33,8 +34,6 @@ async def sign_up(
     try:
         user_data_dict = data.model_dump()
         user_data_dict["password"] = hash_password(user_data_dict["password"])
-        user_data_dict["role"] = "user"
-        user_data_dict["user_id"] = generate_user_id()
         user = User(**user_data_dict)
         session.add(user)
 
@@ -89,9 +88,9 @@ async def get_my_data(
 
 async def add_money(
     session: AsyncSession,
-    data: UserAddMoneySchema,
+    data: UserAddFundsSchema,
     user_verifier: UserSchema,
-) -> dict[str, str]:
+) -> UserAddFundsResponseSchema:
     user_from_db = await get_user_from_db_by_uid(session, user_verifier.user_id)
     user_from_db.money += data.amount
     balance = user_from_db.money
@@ -107,7 +106,7 @@ async def add_money(
     session.add(action)
 
     await session.commit()
-    return {"message": "Funds added", "new balance": balance}
+    return UserAddFundsResponseSchema(message="Funds added", new_balance=balance)
 
 
 async def buy_book(

@@ -1,21 +1,22 @@
 from typing import Annotated
 from fastapi import APIRouter, Depends
+from fastapi_cache.decorator import cache
 
 from app.api_v1.users import services
 from app.database import get_session
+from app.schemas.jwt_schema import TokenInfoSchema
+from app.schemas.user_schemas import UserAddFundsResponseSchema, UserGetSchema
 from app.utils.jwt_funcs import validate_auth_user, get_current_auth_user
-from app.schemas import (
-    AccountSigninSchema,
+from app.schemas.user_schemas import (
     UserSchema,
     UserSignupSchema,
     UserGetVerifiedSchema,
-    UserDeleteSchema,
-    UserAddMoneySchema,
     UserGetSelfSchema,
-    UserGetSchema,
-    TokenInfoSchema,
+    UserDeleteSchema,
+    UserAddFundsSchema,
 )
-from fastapi_cache.decorator import cache
+from app.schemas.account_schemas import AccountSigninSchema
+
 
 router = APIRouter(
     prefix="/user",
@@ -48,12 +49,12 @@ async def get_my_data(
     return await services.get_my_data(session, user_verifier)
 
 
-@router.post("/me/add-funds")
+@router.post("/me/add-funds", response_model=UserAddFundsResponseSchema)
 async def add_money(
     session: Annotated[get_session, Depends()],
-    data: Annotated[UserAddMoneySchema, Depends()],
+    data: Annotated[UserAddFundsSchema, Depends()],
     user_verifier: UserSchema = Depends(get_current_auth_user),
-) -> dict[str, str]:
+) -> UserAddFundsResponseSchema:
     return await services.add_money(session, data, user_verifier)
 
 
