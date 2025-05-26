@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends
 
 from app.database import get_session
 from app.api_v1.books import services
-from app.schemas.book_schemas import (
+from app.schemas.book import (
     BookFilterSchema,
     BookGetSchema,
 )

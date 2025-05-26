@@ -2,7 +2,7 @@ from datetime import datetime
 
 from pydantic import BaseModel, Field, ConfigDict
 
-from app.schemas.account_schemas import AccountSchema
+from app.schemas.account import AccountSchema
 
 
 class BookOwnedSchema(BaseModel):

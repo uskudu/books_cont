@@ -2,7 +2,7 @@ from datetime import datetime, timezone, timedelta
 import bcrypt
 import jwt
 from app.core.config import settings
-from app.schemas.account_schemas import AccountSchema
+from app.schemas.account import AccountSchema
 
 TOKEN_TYPE_FIELD = "token_type"
 ACCESS_TOKEN_TYPE = "access"

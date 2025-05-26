@@ -5,15 +5,15 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import IntegrityError
 
 from app.database.models import User, UserActions
-from app.schemas.jwt_schema import TokenInfoSchema
-from app.schemas.user_schemas import UserGetSchema, UserAddFundsResponseSchema
+from app.schemas.jwt import TokenInfoSchema
+from app.schemas.user import UserGetSchema, UserAddFundsResponseSchema
 from app.utils import jwt_utils
 from app.utils.jwt_utils import (
     create_user_access_token,
     create_admin_access_token,
     hash_password,
 )
-from app.schemas.user_schemas import (
+from app.schemas.user import (
     UserSchema,
     UserSignupSchema,
     UserGetVerifiedSchema,
@@ -21,8 +21,8 @@ from app.schemas.user_schemas import (
     UserDeleteSchema,
     UserAddFundsSchema,
 )
-from app.schemas.account_schemas import AccountSigninSchema
-from app.schemas.book_schemas import BookSchema
+from app.schemas.account import AccountSigninSchema
+from app.schemas.book import BookSchema
 
 
 from app.api_v1.users.crud import get_user_from_db_by_uid, get_user_from_db_by_username

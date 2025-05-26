@@ -4,10 +4,10 @@ from fastapi_cache.decorator import cache
 
 from app.api_v1.users import services
 from app.database import get_session
-from app.schemas.jwt_schema import TokenInfoSchema
-from app.schemas.user_schemas import UserAddFundsResponseSchema, UserGetSchema
+from app.schemas.jwt import TokenInfoSchema
+from app.schemas.user import UserAddFundsResponseSchema, UserGetSchema
 from app.utils.jwt_funcs import validate_auth_user, get_current_auth_user
-from app.schemas.user_schemas import (
+from app.schemas.user import (
     UserSchema,
     UserSignupSchema,
     UserGetVerifiedSchema,
@@ -15,7 +15,7 @@ from app.schemas.user_schemas import (
     UserDeleteSchema,
     UserAddFundsSchema,
 )
-from app.schemas.account_schemas import AccountSigninSchema
+from app.schemas.account import AccountSigninSchema
 
 
 router = APIRouter(

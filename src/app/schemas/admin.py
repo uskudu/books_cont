@@ -1,8 +1,8 @@
 from pydantic import BaseModel, ConfigDict
 
-from app.schemas.book_schemas import BookSchema
-from app.schemas.account_schemas import AccountSchema
-from app.schemas.user_schemas import UserActionsGetSchema, BookOwnedSchema
+from app.schemas.book import BookSchema
+from app.schemas.account import AccountSchema
+from app.schemas.user import UserActionsGetSchema, BookOwnedSchema
 
 
 class AdminSchema(AccountSchema):
@@ -16,7 +16,7 @@ class AdminSignupSchema(AdminSchema):
 class AdminGetSchema(BaseModel):
     admin_id: str
     username: int
-    role: str = "admin"
+    role: str = "admins"
 
     model_config = ConfigDict(from_attributes=True)
 

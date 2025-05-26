@@ -5,8 +5,8 @@ from sqlalchemy import Table, Column, ForeignKey, String, TIMESTAMP
 from sqlalchemy.sql import func
 
 from app.database.base import Base
-from app.schemas.user_schemas import BookOwnedSchema
-from app.schemas.user_schemas import UserActionsGetSchema
+from app.schemas.user import BookOwnedSchema
+from app.schemas.user import UserActionsGetSchema
 
 
 user_books_table = Table(
@@ -58,7 +58,7 @@ class Admin(Base):
     )
     username: Mapped[str] = mapped_column(unique=True, nullable=False)
     password: Mapped[str] = mapped_column(nullable=False)
-    role: Mapped[str] = mapped_column(default="admin")
+    role: Mapped[str] = mapped_column(default="admins")
 
     def to_dict(self):
         return {

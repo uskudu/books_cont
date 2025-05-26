@@ -7,13 +7,13 @@ from sqlalchemy.orm import selectinload
 from app.api_v1.books.crud import get_book_from_db
 from app.database import user_books_table
 from app.database.models import Book, User, Admin
-from app.schemas.admin_schemas import (
+from app.schemas.admin import (
     AdminSignupSchema,
     AdminGetSchema,
     AdminSchema,
     AdminGetUserSchema,
 )
-from app.schemas.book_schemas import BookAddSchema, BookSchema, BookEditSchema
+from app.schemas.book import BookAddSchema, BookSchema, BookEditSchema
 
 from app.utils.jwt_utils import hash_password
 

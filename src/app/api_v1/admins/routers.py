@@ -1,23 +1,23 @@
 from typing import Annotated
 from fastapi import APIRouter, Depends
 
-from app.api_v1.admin import services
+from app.api_v1.admins import services
 from app.database import get_session
 from app.utils.jwt_funcs import get_current_auth_admin
 
 from fastapi_cache.decorator import cache
 
-from app.schemas.admin_schemas import (
+from app.schemas.admin import (
     AdminSignupSchema,
     AdminGetSchema,
     AdminSchema,
     AdminGetUserSchema,
     AdminDeletedBookResponseSchema,
 )
-from app.schemas.book_schemas import BookAddSchema, BookSchema, BookEditSchema
+from app.schemas.book import BookAddSchema, BookSchema, BookEditSchema
 
 router = APIRouter(
-    prefix="/admin",
+    prefix="/admins",
     tags=["Admin"],
 )
 
