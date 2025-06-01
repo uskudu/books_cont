@@ -51,3 +51,15 @@ async def get_book(
 ) -> BookGetSchema:
     book_from_db = await get_book_from_db(session, book_id)
     return BookGetSchema.model_validate(book_from_db)
+
+
+class A:
+    x = 1
+
+
+def q():
+    return "qwe"
+
+
+def add(x, y):
+    return x + y

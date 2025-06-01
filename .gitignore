@@ -12,3 +12,4 @@ volumes/
 tmp/
 
 /certs
+*.db
