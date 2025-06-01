@@ -58,7 +58,6 @@ from app.schemas.admin import AdminSignupSchema, AdminGetSchema
 #     assert saved_admin.username == xxx
 
 
-
 @pytest.mark.asyncio
 async def test_sign_up(mock_hash_password, async_session):
     # Arrange
@@ -72,7 +71,7 @@ async def test_sign_up(mock_hash_password, async_session):
         transport=ASGITransport(app=app),
         base_url="http://test",
     ) as ac:
-        response = await ac.post("/admins/sign-up", json=signup_data)
+        response = await ac.post("/admin/sign-up", json=signup_data)
 
     # Assert
     assert (

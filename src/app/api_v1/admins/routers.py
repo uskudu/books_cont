@@ -17,7 +17,7 @@ from app.schemas.admin import (
 from app.schemas.book import BookAddSchema, BookSchema, BookEditSchema
 
 router = APIRouter(
-    prefix="/admins",
+    prefix="/admin",
     tags=["Admin"],
 )
 
