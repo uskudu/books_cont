@@ -15,7 +15,7 @@ class AdminSignupSchema(AdminSchema):
 
 class AdminGetSchema(BaseModel):
     admin_id: str
-    username: int
+    username: str
     role: str = "admins"
 
     model_config = ConfigDict(from_attributes=True)

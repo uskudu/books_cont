@@ -25,7 +25,7 @@ router = APIRouter(
 @router.post("/sign-up")
 async def sign_up(
     session: Annotated[get_session, Depends()],
-    admin: Annotated[AdminSignupSchema, Depends()],
+    admin: AdminSignupSchema,  # admin: Annotated[AdminSignupSchema, Depends()],
 ) -> AdminGetSchema:
     return await services.sign_up(session, admin)
 

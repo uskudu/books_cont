@@ -26,9 +26,3 @@ app = FastAPI(lifespan=lifespan)
 
 for router in routers:
     app.include_router(router)
-
-
-# @app.on_event("startup")
-# async def startup():
-#     async with test_engine.begin() as conn:
-#         await conn.run_sync(Base.metadata.create_all)
