@@ -16,7 +16,15 @@ class AdminSignupSchema(AdminSchema):
 class AdminGetSchema(BaseModel):
     admin_id: str
     username: str
-    role: str = "admins"
+    role: str = "admin"
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class AdminCreateJWTSchema(BaseModel):
+    admin_id: str
+    username: str
+    role: str = "admin"
 
     model_config = ConfigDict(from_attributes=True)
 

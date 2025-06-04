@@ -4,6 +4,7 @@ from jwt import InvalidTokenError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
+from app.api_v1.admins.crud import get_admin_from_db_by_username
 from app.database import get_session
 from app.database.models import User, Admin
 from app.utils import jwt_utils
@@ -14,14 +15,6 @@ from app.api_v1.users.crud import (
 
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/user/sign-in")
-
-
-async def get_admin_from_db_by_username(
-    session: AsyncSession,
-    username: str,
-) -> Admin | None:
-    admin = await session.execute(select(Admin).where(Admin.username == username))
-    return admin.scalar_one_or_none()
 
 
 async def validate_auth_user(

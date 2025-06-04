@@ -3,6 +3,8 @@ import bcrypt
 import jwt
 from app.core.config import settings
 from app.schemas.account import AccountSchema
+from app.schemas.admin import AdminGetSchema, AdminCreateJWTSchema
+from app.schemas.user import UserCreateJWTSchema
 
 TOKEN_TYPE_FIELD = "token_type"
 ACCESS_TOKEN_TYPE = "access"
@@ -52,7 +54,7 @@ def create_jwt(
     )
 
 
-def create_user_access_token(user: AccountSchema) -> str:
+def create_user_access_token(user: UserCreateJWTSchema) -> str:
     jwt_payload = {
         "sub": user.user_id,
         "username": user.username,
@@ -65,7 +67,7 @@ def create_user_access_token(user: AccountSchema) -> str:
     )
 
 
-def create_admin_access_token(admin: AccountSchema) -> str:
+def create_admin_access_token(admin: AdminCreateJWTSchema) -> str:
     jwt_payload = {
         "sub": admin.admin_id,
         "username": admin.username,

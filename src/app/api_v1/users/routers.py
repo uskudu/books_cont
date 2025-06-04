@@ -1,5 +1,5 @@
 from typing import Annotated
-from fastapi import APIRouter, Depends, Body
+from fastapi import APIRouter, Depends, Body, Form
 from fastapi_cache.decorator import cache
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -36,8 +36,11 @@ async def sign_up(
 @router.post("/sign-in")
 async def sign_in(
     session: Annotated[AsyncSession, Depends(get_session)],
-    account: Annotated[AccountSigninSchema, Depends()],
+    # account: Annotated[AccountSigninSchema, Depends()],
+    username: str = Form(),
+    password: str = Form(),
 ) -> TokenInfoSchema:
+    account = AccountSigninSchema(username=username, password=password)
     return await services.sign_in(session, account)
 
 

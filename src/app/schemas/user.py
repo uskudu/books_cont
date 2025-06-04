@@ -39,6 +39,14 @@ class UserGetSchema(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
+class UserCreateJWTSchema(BaseModel):
+    user_id: str
+    username: str
+    role: str = "user"
+
+    model_config = ConfigDict(from_attributes=True)
+
+
 class UserActionsGetSchema(BaseModel):
     user_id: str
     action_type: str

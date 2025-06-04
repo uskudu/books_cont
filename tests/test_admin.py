@@ -1,3 +1,5 @@
+import uuid
+
 import pytest
 from httpx import AsyncClient, ASGITransport
 from pytest_mock import mocker
@@ -98,7 +100,12 @@ from app.schemas.admin import AdminSignupSchema, AdminGetSchema
 
 @pytest.mark.asyncio
 async def test_sign_in(mock_hash_password, async_session):
-    adm = Admin(username="admin1", password="plain_password", role="admin")
+    adm = Admin(
+        admin_id=str(uuid.uuid4()),
+        username="admin1",
+        password="plain_password",
+        role="admin",
+    )
     async_session.add(adm)
     await async_session.commit()
 
@@ -107,17 +114,19 @@ async def test_sign_in(mock_hash_password, async_session):
         "password": "plain_password",
         "role": "admin",
     }
-    # signin_data = AccountSigninSchema(
-    #     username="admin1",
-    #     password="plain_password",
-    # )
-
     # Act
     async with AsyncClient(
         transport=ASGITransport(app=app),
         base_url="http://test",
     ) as ac:
-        response = await ac.post("/user/sign-in", json=signin_data)
+        response = await ac.post(
+            url="/user/sign-in",
+            data=signin_data,
+            headers={
+                "Content-Type": "application/x-www-form-urlencoded",
+                "accept": "application/json",
+            },
+        )
 
     # Test
     assert (

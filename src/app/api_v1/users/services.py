@@ -8,6 +8,7 @@ from app.database.models import User, UserActions
 from app.schemas.jwt import TokenInfoSchema
 from app.schemas.user import UserGetSchema, UserAddFundsResponseSchema
 from app.utils import jwt_utils
+from app.utils.jwt_funcs import get_admin_from_db_by_username
 from app.utils.jwt_utils import (
     create_user_access_token,
     create_admin_access_token,
@@ -77,7 +78,9 @@ async def sign_in(
         session.add(action)
         await session.commit()
     else:
-        access_token = create_admin_access_token(account)
+        admin = await get_admin_from_db_by_username(session, account.username)
+
+        access_token = create_admin_access_token(admin)
     return TokenInfoSchema(access_token=access_token)
 
 
