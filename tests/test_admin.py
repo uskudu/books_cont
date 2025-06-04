@@ -12,7 +12,7 @@ from tests.test_models import Admin, User
 
 async def add_admin_to_db(async_session):
     adm = Admin(
-        admin_id=str(uuid.uuid4()),
+        admin_id="test_aid",
         username="test_username",
         password="test_password",
         role="admin",
@@ -164,3 +164,29 @@ async def test_get_user_by_id(async_session, mock_hash_password):
     assert response_data["username"] == "test_user1"
     assert response_data["role"] == "user"
     assert response_data["money"] == 777
+
+
+@pytest.mark.asyncio
+async def test_get_all_admins(async_session, mock_hash_password):
+    adm = await add_admin_to_db(async_session)
+    test_admin = AdminCreateJWTSchema.model_validate(adm)
+    token = create_admin_access_token(test_admin)
+    headers = {"Authorization": f"Bearer {token}"}
+
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+    ) as ac:
+        response = await ac.get(
+            url="/admin/admins",
+            headers=headers,
+        )
+
+    assert (
+        response.status_code == 200
+    ), f"Expected 200, got {response.status_code}: {response.json()}"
+    response_data = response.json()
+    resp = response_data[0]
+    assert resp["admin_id"] == "test_aid"
+    assert resp["username"] == "test_username"
+    assert resp["role"] == "admin"
