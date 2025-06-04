@@ -46,10 +46,6 @@ async def get_all_users(
         .options(selectinload(User.user_actions))
     )
     users = query.scalars().all()
-    if not users:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="No users found"
-        )
     return [AdminGetUserSchema.model_validate(user) for user in users]
 
 

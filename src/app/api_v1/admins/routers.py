@@ -13,7 +13,6 @@ from app.schemas.admin import (
     AdminGetSchema,
     AdminSchema,
     AdminGetUserSchema,
-    AdminDeletedBookResponseSchema,
 )
 from app.schemas.book import BookAddSchema, BookSchema, BookEditSchema
 

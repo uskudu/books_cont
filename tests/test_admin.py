@@ -5,60 +5,13 @@ from httpx import AsyncClient, ASGITransport
 from sqlalchemy import select
 
 from app.main import app
+from app.schemas.admin import AdminSchema, AdminCreateJWTSchema
+from app.utils.jwt_utils import create_admin_access_token
 from tests.test_models import Admin
-
-# @pytest.mark.asyncio
-# async def test_create_user(async_session):
-#     user = User(
-#         username="Aliya",
-#         password="qwerty",
-#         money=123000,
-#     )
-#     async_session.add(user)
-#     await async_session.commit()
-#     await async_session.refresh(user)
-#
-#     assert user.user_id is not None
-#     assert user.username == "Aliya"
-
-
-# @pytest.mark.asyncio
-# async def test_add_funds(async_session):
-#     stmt = await async_session.execute(select(User).where(User.username == "Aliya"))
-#     user = stmt.scalar_one_or_none()
-#     assert user.money == 123001
-#     user.money += 1
-#     await async_session.commit()
-#     await async_session.refresh(user)
-#     assert user.money == 123002
-
-
-# # Test: successful admin signup
-# @pytest.mark.asyncio
-# async def test_sign_up_success(async_session):
-#     xxx = str(6)
-#     # Arrange
-#     signup_data = AdminSignupSchema(
-#         username=xxx,
-#         password=xxx,
-#     )
-#
-#     # Act
-#     result = await sign_up(async_session, signup_data)
-#
-#     # Assert
-#     assert isinstance(result, AdminGetSchema)
-#     assert result.username == xxx
-#
-#     # Verify the admin was saved in the database
-#     stmt = select(Admin).where(Admin.username == xxx)
-#     saved_admin = (await async_session.execute(stmt)).scalar_one_or_none()
-#     assert saved_admin is not None
-#     assert saved_admin.username == xxx
 
 
 @pytest.mark.asyncio
-async def test_sign_up(mock_hash_password, async_session):
+async def test_sign_up(async_session, mock_hash_password):
     # Arrange
     signup_data = {
         "username": "admin1",
@@ -93,7 +46,7 @@ async def test_sign_up(mock_hash_password, async_session):
 
 
 @pytest.mark.asyncio
-async def test_sign_in(mock_hash_password, async_session):
+async def test_sign_in(async_session, mock_hash_password):
     adm = Admin(
         admin_id=str(uuid.uuid4()),
         username="admin1",
@@ -127,3 +80,32 @@ async def test_sign_in(mock_hash_password, async_session):
     assert response_data["token_type"] == "Bearer"
 
 
+@pytest.mark.asyncio
+async def test_get_all_users(async_session, mock_hash_password):
+    adm = Admin(
+        admin_id=str(uuid.uuid4()),
+        username="test_name",
+        password="test_password",
+        role="admin",
+    )
+    async_session.add(adm)
+    await async_session.commit()
+
+    stmt = await async_session.execute(
+        select(Admin).where(Admin.username == "test_name")
+    )
+    admin_from_db = stmt.scalar_one_or_none()
+    test_admin = AdminCreateJWTSchema.model_validate(admin_from_db)
+    token = create_admin_access_token(test_admin)
+    headers = {"Authorization": f"Bearer {token}"}
+    # then test
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+    ) as ac:
+        response = await ac.get(url="/admin/users", headers=headers)
+
+    assert (
+        response.status_code == 200
+    ), f"Expected 200, got {response.status_code}: {response.json()}"
+    response_data = response.json()
