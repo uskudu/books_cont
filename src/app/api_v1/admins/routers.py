@@ -61,7 +61,7 @@ async def get_all_admins(
 @router.post("/books")
 async def add_book(
     session: Annotated[AsyncSession, Depends(get_session)],
-    data: Annotated[BookAddSchema, Depends()],
+    data: BookAddSchema,
     admin_verifier: AdminSchema = Depends(get_current_auth_admin),
 ) -> dict[str, BookSchema]:
     return await services.add_book(session, data, admin_verifier)

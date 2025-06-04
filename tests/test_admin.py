@@ -6,6 +6,7 @@ from sqlalchemy import select
 
 from app.main import app
 from app.schemas.admin import AdminCreateJWTSchema
+from app.schemas.book import BookSchema
 from app.utils.jwt_utils import create_admin_access_token
 from tests.test_models import Admin, User
 
@@ -190,3 +191,47 @@ async def test_get_all_admins(async_session, mock_hash_password):
     assert resp["admin_id"] == "test_aid"
     assert resp["username"] == "test_username"
     assert resp["role"] == "admin"
+
+
+@pytest.mark.asyncio
+async def test_add_book(async_session, mock_hash_password):
+    adm = await add_admin_to_db(async_session)
+    test_admin = AdminCreateJWTSchema.model_validate(adm)
+    token = create_admin_access_token(test_admin)
+    headers = {"Authorization": f"Bearer {token}"}
+
+    book = BookSchema(
+        title="test_title",
+        author="test_author",
+        genre="test_genre",
+        description="test_description",
+        year=2025,
+        price=100,
+        times_bought=50,
+        times_returned=5,
+    )
+
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+    ) as ac:
+        response = await ac.post(
+            url="/admin/books",
+            json=book.model_dump(),
+            headers=headers,
+        )
+    assert (
+        response.status_code == 200
+    ), f"Expected 200, got {response.status_code}: {response.json()}"
+    response_data = response.json()
+    assert response_data["Successfully added book"] == {
+        "title": "test_title",
+        "author": "test_author",
+        "genre": "test_genre",
+        "description": "test_description",
+        "year": 2025,
+        "price": 100,
+        "times_bought": 50,
+        "times_returned": 5,
+        "rating": 0,
+    }
