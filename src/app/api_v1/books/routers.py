@@ -1,5 +1,6 @@
 from typing import Annotated
 from fastapi import APIRouter, Depends
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_session
 from app.api_v1.books import services
@@ -18,7 +19,7 @@ router = APIRouter(
 @cache(expire=60)
 @router.get("/")
 async def get_all_books(
-    session: Annotated[get_session, Depends()],
+    session: Annotated[AsyncSession, Depends(get_session)],
     filters: Annotated[BookFilterSchema, Depends()],
 ) -> list[BookGetSchema]:
     return await services.get_all_books(session, filters)
@@ -27,6 +28,7 @@ async def get_all_books(
 @cache(expire=60)
 @router.get("/{book_id}")
 async def get_book(
-    session: Annotated[get_session, Depends()], book_id: int
+    session: Annotated[AsyncSession, Depends(get_session)],
+    book_id: int,
 ) -> BookGetSchema:
     return await services.get_book(session, book_id)

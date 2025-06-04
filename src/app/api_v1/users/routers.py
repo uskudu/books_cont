@@ -1,6 +1,7 @@
 from typing import Annotated
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Body
 from fastapi_cache.decorator import cache
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api_v1.users import services
 from app.database import get_session
@@ -26,7 +27,7 @@ router = APIRouter(
 
 @router.post("/sign-up")
 async def sign_up(
-    session: Annotated[get_session, Depends()],
+    session: Annotated[AsyncSession, Depends(get_session)],
     data: Annotated[UserSignupSchema, Depends()],
 ) -> UserGetSchema:
     return await services.sign_up(session, data)
@@ -34,8 +35,8 @@ async def sign_up(
 
 @router.post("/sign-in")
 async def sign_in(
-    session: Annotated[get_session, Depends()],
-    account: AccountSigninSchema = Depends(validate_auth_user),
+    session: Annotated[AsyncSession, Depends(get_session)],
+    account: AccountSigninSchema = Body(...),
 ) -> TokenInfoSchema:
     return await services.sign_in(session, account)
 
@@ -43,7 +44,7 @@ async def sign_in(
 @cache(expire=60)
 @router.get("/me", response_model=UserGetSelfSchema)
 async def get_my_data(
-    session: Annotated[get_session, Depends()],
+    session: Annotated[AsyncSession, Depends(get_session)],
     user_verifier: UserGetVerifiedSchema = Depends(get_current_auth_user),
 ) -> UserGetSelfSchema:
     return await services.get_my_data(session, user_verifier)
@@ -51,7 +52,7 @@ async def get_my_data(
 
 @router.post("/me/add-funds", response_model=UserAddFundsResponseSchema)
 async def add_money(
-    session: Annotated[get_session, Depends()],
+    session: Annotated[AsyncSession, Depends(get_session)],
     data: Annotated[UserAddFundsSchema, Depends()],
     user_verifier: UserSchema = Depends(get_current_auth_user),
 ) -> UserAddFundsResponseSchema:
@@ -61,7 +62,7 @@ async def add_money(
 @router.post("/me/purchase-book")
 async def buy_book(
     book_id: int,
-    session: Annotated[get_session, Depends()],
+    session: Annotated[AsyncSession, Depends(get_session)],
     user_verifier: UserSchema = Depends(get_current_auth_user),
 ) -> dict[str, str]:
     return await services.buy_book(session, book_id, user_verifier)
@@ -69,7 +70,7 @@ async def buy_book(
 
 @router.post("/me/return-book")
 async def return_book(
-    session: Annotated[get_session, Depends()],
+    session: Annotated[AsyncSession, Depends(get_session)],
     book_id: int,
     user_verifier: UserSchema = Depends(get_current_auth_user),
 ) -> dict[str, str]:
@@ -79,7 +80,7 @@ async def return_book(
 @router.delete("/me")
 async def delete_account(
     data: Annotated[UserDeleteSchema, Depends()],
-    session: Annotated[get_session, Depends()],
+    session: Annotated[AsyncSession, Depends(get_session)],
     user_verifier: UserSchema = Depends(get_current_auth_user),
 ) -> dict[str, str]:
     return await services.delete_account(session, data, user_verifier)
