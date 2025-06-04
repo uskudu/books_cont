@@ -108,7 +108,7 @@ async def test_sign_up(async_session, mock_hash_password):
 
 
 @pytest.mark.asyncio
-async def test_sign_in(async_session, mock_hash_password):
+async def test_sign_in(async_session):
     await add_admin_to_db(async_session)
 
     signin_data = {
@@ -136,7 +136,7 @@ async def test_sign_in(async_session, mock_hash_password):
 
 
 @pytest.mark.asyncio
-async def test_get_all_users(async_session, mock_hash_password):
+async def test_get_all_users(async_session):
     adm = await add_admin_to_db(async_session)
     test_admin = AdminCreateJWTSchema.model_validate(adm)
     token = create_admin_access_token(test_admin)
@@ -158,7 +158,7 @@ async def test_get_all_users(async_session, mock_hash_password):
 
 
 @pytest.mark.asyncio
-async def test_get_user_by_id(async_session, mock_hash_password):
+async def test_get_user_by_id(async_session):
     adm = await add_admin_to_db(async_session)
     test_admin = AdminCreateJWTSchema.model_validate(adm)
     token = create_admin_access_token(test_admin)
@@ -186,7 +186,7 @@ async def test_get_user_by_id(async_session, mock_hash_password):
 
 
 @pytest.mark.asyncio
-async def test_get_all_admins(async_session, mock_hash_password):
+async def test_get_all_admins(async_session):
     adm = await add_admin_to_db(async_session)
     test_admin = AdminCreateJWTSchema.model_validate(adm)
     token = create_admin_access_token(test_admin)
@@ -212,7 +212,7 @@ async def test_get_all_admins(async_session, mock_hash_password):
 
 
 @pytest.mark.asyncio
-async def test_add_book(async_session, mock_hash_password):
+async def test_add_book(async_session):
     adm = await add_admin_to_db(async_session)
     test_admin = AdminCreateJWTSchema.model_validate(adm)
     token = create_admin_access_token(test_admin)
@@ -257,7 +257,7 @@ async def test_add_book(async_session, mock_hash_password):
 
 
 @pytest.mark.asyncio
-async def test_edit_book(async_session, mock_hash_password):
+async def test_edit_book(async_session):
     adm = await add_admin_to_db(async_session)
     test_admin = AdminCreateJWTSchema.model_validate(adm)
     token = create_admin_access_token(test_admin)
@@ -301,3 +301,7 @@ async def test_edit_book(async_session, mock_hash_password):
         "times_returned": 99,
         "rating": 0,
     }
+
+
+# @pytest.mark.asyncio
+# async def test_delete_book(async_session, mock_hash_password):
