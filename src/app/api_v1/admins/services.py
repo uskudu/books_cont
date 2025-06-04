@@ -126,7 +126,9 @@ async def delete_book(
     admin_verifier: AdminSchema,
 ) -> dict[str, BookSchema]:
     deleted_book = await get_book_from_db(session, book_id)
+    await session.execute(
+        delete(user_books_table).where(user_books_table.c.book_id == book_id)
+    )
     await session.execute(delete(Book).where(Book.id == book_id))
-    await session.execute(delete(user_books_table).where(Book.id == book_id))
     await session.commit()
     return {"Successfully deleted book": BookSchema.model_validate(deleted_book)}

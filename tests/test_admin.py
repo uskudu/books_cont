@@ -29,6 +29,19 @@ async def add_book_to_db(async_session):
     return book
 
 
+book_return_value = {
+    "title": "test_title",
+    "author": "test_author",
+    "genre": "test_genre",
+    "description": "test_description",
+    "year": 2025,
+    "price": 100,
+    "times_bought": 50,
+    "times_returned": 5,
+    "rating": 0,
+}
+
+
 async def add_admin_to_db(async_session):
     adm = Admin(
         admin_id="test_aid",
@@ -243,17 +256,7 @@ async def test_add_book(async_session):
         response.status_code == 200
     ), f"Expected 200, got {response.status_code}: {response.json()}"
     response_data = response.json()
-    assert response_data["Successfully added book"] == {
-        "title": "test_title",
-        "author": "test_author",
-        "genre": "test_genre",
-        "description": "test_description",
-        "year": 2025,
-        "price": 100,
-        "times_bought": 50,
-        "times_returned": 5,
-        "rating": 0,
-    }
+    assert response_data["Successfully added book"] == book_return_value
 
 
 @pytest.mark.asyncio
@@ -303,5 +306,26 @@ async def test_edit_book(async_session):
     }
 
 
-# @pytest.mark.asyncio
-# async def test_delete_book(async_session, mock_hash_password):
+@pytest.mark.asyncio
+async def test_delete_book(async_session):
+    adm = await add_admin_to_db(async_session)
+    test_admin = AdminCreateJWTSchema.model_validate(adm)
+    token = create_admin_access_token(test_admin)
+    headers = {"Authorization": f"Bearer {token}"}
+
+    await add_book_to_db(async_session)
+    book_id = 1
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+    ) as ac:
+        response = await ac.delete(
+            url=f"/admin/books/{book_id}",
+            headers=headers,
+        )
+
+    assert (
+        response.status_code == 200
+    ), f"Expected 200, got {response.status_code}: {response.json()}"
+    response_data = response.json()
+    assert response_data["Successfully deleted book"] == book_return_value
