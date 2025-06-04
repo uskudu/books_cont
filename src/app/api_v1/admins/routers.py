@@ -71,7 +71,7 @@ async def add_book(
 async def edit_book(
     session: Annotated[AsyncSession, Depends(get_session)],
     book_id: int,
-    data: Annotated[BookEditSchema, Depends()],
+    data: BookEditSchema,
     admin_verifier: AdminSchema = Depends(get_current_auth_admin),
 ) -> dict[str, BookSchema]:
     return await services.edit_book(session, book_id, data, admin_verifier)

@@ -6,9 +6,27 @@ from sqlalchemy import select
 
 from app.main import app
 from app.schemas.admin import AdminCreateJWTSchema
-from app.schemas.book import BookSchema
+from app.schemas.book import BookSchema, BookEditSchema
 from app.utils.jwt_utils import create_admin_access_token
-from tests.test_models import Admin, User
+from tests.test_models import Admin, User, Book
+
+
+async def add_book_to_db(async_session):
+    book = Book(
+        id=1,
+        title="test_title",
+        author="test_author",
+        genre="test_genre",
+        description="test_description",
+        year=2025,
+        price=100,
+        times_bought=50,
+        times_returned=5,
+    )
+    async_session.add(book)
+    await async_session.commit()
+    await async_session.refresh(book)
+    return book
 
 
 async def add_admin_to_db(async_session):
@@ -220,6 +238,7 @@ async def test_add_book(async_session, mock_hash_password):
             json=book.model_dump(),
             headers=headers,
         )
+
     assert (
         response.status_code == 200
     ), f"Expected 200, got {response.status_code}: {response.json()}"
@@ -233,5 +252,52 @@ async def test_add_book(async_session, mock_hash_password):
         "price": 100,
         "times_bought": 50,
         "times_returned": 5,
+        "rating": 0,
+    }
+
+
+@pytest.mark.asyncio
+async def test_edit_book(async_session, mock_hash_password):
+    adm = await add_admin_to_db(async_session)
+    test_admin = AdminCreateJWTSchema.model_validate(adm)
+    token = create_admin_access_token(test_admin)
+    headers = {"Authorization": f"Bearer {token}"}
+
+    await add_book_to_db(async_session)
+    book_id = 1
+    book_edit_schema = BookEditSchema(
+        title="edit_test_title",
+        author="edit_test_author",
+        genre="edit_test_genre",
+        description="edit_test_description",
+        year=99,
+        price=99,
+        times_bought=99,
+        times_returned=99,
+    )
+
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+    ) as ac:
+        response = await ac.put(
+            url=f"/admin/books/{book_id}",
+            json=book_edit_schema.model_dump(),
+            headers=headers,
+        )
+
+    assert (
+        response.status_code == 200
+    ), f"Expected 200, got {response.status_code}: {response.json()}"
+    response_data = response.json()
+    assert response_data["Successfully updated book"] == {
+        "title": "edit_test_title",
+        "author": "edit_test_author",
+        "genre": "edit_test_genre",
+        "description": "edit_test_description",
+        "year": 99,
+        "price": 99,
+        "times_bought": 99,
+        "times_returned": 99,
         "rating": 0,
     }
