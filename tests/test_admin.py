@@ -10,12 +10,25 @@ from app.utils.jwt_utils import create_admin_access_token
 from tests.test_models import Admin
 
 
+async def add_admin_to_db(async_session):
+    adm = Admin(
+        admin_id=str(uuid.uuid4()),
+        username="test_username",
+        password="test_password",
+        role="admin",
+    )
+    async_session.add(adm)
+    await async_session.commit()
+    await async_session.refresh(adm)
+    return adm
+
+
 @pytest.mark.asyncio
 async def test_sign_up(async_session, mock_hash_password):
     # Arrange
     signup_data = {
-        "username": "admin1",
-        "password": "plain_password",
+        "username": "test_username",
+        "password": "test_password",
     }
 
     # Act
@@ -30,35 +43,36 @@ async def test_sign_up(async_session, mock_hash_password):
         response.status_code == 200
     ), f"Expected 200, got {response.status_code}: {response.json()}"
     response_data = response.json()
-    assert response_data["username"] == "admin1"
+    assert response_data["username"] == "test_username"
     assert "admin_id" in response_data
     assert response_data["role"] == "admins"
 
     result = await async_session.execute(
-        select(Admin).where(Admin.username == "admin1")
+        select(Admin).where(Admin.username == "test_username")
     )
     saved_admin = result.scalar_one_or_none()
 
     assert saved_admin is not None
-    assert saved_admin.username == "admin1"
+    assert saved_admin.username == "test_username"
     assert saved_admin.password == "hashed_password"
-    mock_hash_password.assert_called_once_with("plain_password")
+    mock_hash_password.assert_called_once_with("test_password")
 
 
 @pytest.mark.asyncio
 async def test_sign_in(async_session, mock_hash_password):
-    adm = Admin(
-        admin_id=str(uuid.uuid4()),
-        username="admin1",
-        password="plain_password",
-        role="admin",
-    )
-    async_session.add(adm)
-    await async_session.commit()
+    # adm = Admin(
+    #     admin_id=str(uuid.uuid4()),
+    #     username="admin1",
+    #     password="plain_password",
+    #     role="admin",
+    # )
+    # async_session.add(adm)
+    # await async_session.commit()
+    adm = await add_admin_to_db(async_session)
 
     signin_data = {
-        "username": "admin1",
-        "password": "plain_password",
+        "username": "test_username",
+        "password": "test_password",
         "role": "admin",
     }
     # Act
@@ -82,23 +96,12 @@ async def test_sign_in(async_session, mock_hash_password):
 
 @pytest.mark.asyncio
 async def test_get_all_users(async_session, mock_hash_password):
-    adm = Admin(
-        admin_id=str(uuid.uuid4()),
-        username="test_name",
-        password="test_password",
-        role="admin",
-    )
-    async_session.add(adm)
-    await async_session.commit()
+    adm = await add_admin_to_db(async_session)
 
-    stmt = await async_session.execute(
-        select(Admin).where(Admin.username == "test_name")
-    )
-    admin_from_db = stmt.scalar_one_or_none()
-    test_admin = AdminCreateJWTSchema.model_validate(admin_from_db)
+    test_admin = AdminCreateJWTSchema.model_validate(adm)
     token = create_admin_access_token(test_admin)
     headers = {"Authorization": f"Bearer {token}"}
-    # then test
+
     async with AsyncClient(
         transport=ASGITransport(app=app),
         base_url="http://test",
@@ -109,3 +112,7 @@ async def test_get_all_users(async_session, mock_hash_password):
         response.status_code == 200
     ), f"Expected 200, got {response.status_code}: {response.json()}"
     response_data = response.json()
+
+
+# @pytest.mark.asyncio
+# async def test_get_user_by_id(async_session, mock_hash_password):
