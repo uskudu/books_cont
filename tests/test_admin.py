@@ -122,10 +122,6 @@ async def test_sign_in(mock_hash_password, async_session):
         response = await ac.post(
             url="/user/sign-in",
             data=signin_data,
-            headers={
-                "Content-Type": "application/x-www-form-urlencoded",
-                "accept": "application/json",
-            },
         )
 
     # Test
