@@ -5,9 +5,9 @@ from httpx import AsyncClient, ASGITransport
 from sqlalchemy import select
 
 from app.main import app
-from app.schemas.admin import AdminSchema, AdminCreateJWTSchema
+from app.schemas.admin import AdminCreateJWTSchema
 from app.utils.jwt_utils import create_admin_access_token
-from tests.test_models import Admin
+from tests.test_models import Admin, User
 
 
 async def add_admin_to_db(async_session):
@@ -21,6 +21,36 @@ async def add_admin_to_db(async_session):
     await async_session.commit()
     await async_session.refresh(adm)
     return adm
+
+
+async def add_users_to_db(async_session):
+    users = [
+        User(
+            user_id="test_uid",
+            username="test_user1",
+            password="test_password",
+            role="user",
+            money=777,
+        ),
+        User(
+            user_id=str(uuid.uuid4()),
+            username="test_user2",
+            password="test_password",
+            role="user",
+        ),
+        User(
+            user_id=str(uuid.uuid4()),
+            username="test_user3",
+            password="test_password",
+            role="user",
+        ),
+    ]
+
+    async_session.add_all(users)
+    await async_session.commit()
+    for user in users:
+        await async_session.refresh(user)
+    return users
 
 
 @pytest.mark.asyncio
@@ -60,15 +90,7 @@ async def test_sign_up(async_session, mock_hash_password):
 
 @pytest.mark.asyncio
 async def test_sign_in(async_session, mock_hash_password):
-    # adm = Admin(
-    #     admin_id=str(uuid.uuid4()),
-    #     username="admin1",
-    #     password="plain_password",
-    #     role="admin",
-    # )
-    # async_session.add(adm)
-    # await async_session.commit()
-    adm = await add_admin_to_db(async_session)
+    await add_admin_to_db(async_session)
 
     signin_data = {
         "username": "test_username",
@@ -97,10 +119,11 @@ async def test_sign_in(async_session, mock_hash_password):
 @pytest.mark.asyncio
 async def test_get_all_users(async_session, mock_hash_password):
     adm = await add_admin_to_db(async_session)
-
     test_admin = AdminCreateJWTSchema.model_validate(adm)
     token = create_admin_access_token(test_admin)
     headers = {"Authorization": f"Bearer {token}"}
+
+    await add_users_to_db(async_session)
 
     async with AsyncClient(
         transport=ASGITransport(app=app),
@@ -112,7 +135,32 @@ async def test_get_all_users(async_session, mock_hash_password):
         response.status_code == 200
     ), f"Expected 200, got {response.status_code}: {response.json()}"
     response_data = response.json()
+    # assert
 
 
-# @pytest.mark.asyncio
-# async def test_get_user_by_id(async_session, mock_hash_password):
+@pytest.mark.asyncio
+async def test_get_user_by_id(async_session, mock_hash_password):
+    adm = await add_admin_to_db(async_session)
+    test_admin = AdminCreateJWTSchema.model_validate(adm)
+    token = create_admin_access_token(test_admin)
+    headers = {"Authorization": f"Bearer {token}"}
+
+    await add_users_to_db(async_session)
+    uid = "test_uid"
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+    ) as ac:
+        response = await ac.get(
+            url=f"/admin/users/{uid}",
+            headers=headers,
+        )
+
+    assert (
+        response.status_code == 200
+    ), f"Expected 200, got {response.status_code}: {response.json()}"
+    response_data = response.json()
+    assert response_data["user_id"] == "test_uid"
+    assert response_data["username"] == "test_user1"
+    assert response_data["role"] == "user"
+    assert response_data["money"] == 777
