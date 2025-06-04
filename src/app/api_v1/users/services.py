@@ -5,8 +5,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import IntegrityError
 
 from app.database.models import User, UserActions
+from app.schemas.admin import AdminCreateJWTSchema
 from app.schemas.jwt import TokenInfoSchema
-from app.schemas.user import UserGetSchema, UserAddFundsResponseSchema
+from app.schemas.user import (
+    UserGetSchema,
+    UserAddFundsResponseSchema,
+    UserCreateJWTSchema,
+)
 from app.utils import jwt_utils
 from app.utils.jwt_funcs import get_admin_from_db_by_username
 from app.utils.jwt_utils import (
@@ -67,7 +72,9 @@ async def sign_in(
     user = await get_user_from_db_by_username(session, account.username)
 
     if user:
-        access_token = create_user_access_token(account)
+        access_token = create_user_access_token(
+            UserCreateJWTSchema.model_validate(user)
+        )
         new_action = {
             "user_id": user.user_id,
             "action_type": "sign_in",
@@ -80,7 +87,9 @@ async def sign_in(
     else:
         admin = await get_admin_from_db_by_username(session, account.username)
 
-        access_token = create_admin_access_token(admin)
+        access_token = create_admin_access_token(
+            AdminCreateJWTSchema.model_validate(admin)
+        )
     return TokenInfoSchema(access_token=access_token)
 
 
