@@ -36,7 +36,7 @@ async def sign_up(
 @router.post("/sign-in")
 async def sign_in(
     session: Annotated[AsyncSession, Depends(get_session)],
-    account: AccountSigninSchema = Body(...),
+    account: Annotated[AccountSigninSchema, Depends()],
 ) -> TokenInfoSchema:
     return await services.sign_in(session, account)
 
