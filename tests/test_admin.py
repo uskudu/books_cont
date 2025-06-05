@@ -167,7 +167,12 @@ async def test_get_all_users(async_session):
         response.status_code == 200
     ), f"Expected 200, got {response.status_code}: {response.json()}"
     response_data = response.json()
-    # assert
+    assert response_data[0]["user_id"] == "test_uid"
+    assert response_data[0]["username"] == "test_user1"
+    assert response_data[0]["money"] == 777
+    assert "user_id" in response_data[1]
+    assert response_data[1]["username"] == "test_user2"
+    assert response_data[1]["money"] == 0
 
 
 @pytest.mark.asyncio
