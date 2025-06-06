@@ -7,7 +7,7 @@ from app.schemas.admin import AdminCreateJWTSchema
 from app.schemas.book import BookSchema, BookEditSchema
 from app.utils.jwt_utils import create_admin_access_token
 from tests.tools import (
-    add_book_to_db,
+    add_books_to_db,
     add_admin_to_db,
     add_users_to_db,
     book_return_value,
@@ -201,7 +201,7 @@ async def test_edit_book(async_session):
     token = create_admin_access_token(test_admin)
     headers = {"Authorization": f"Bearer {token}"}
 
-    await add_book_to_db(async_session)
+    await add_books_to_db(async_session)
     book_id = 1
     book_edit_schema = BookEditSchema(
         title="edit_test_title",
@@ -248,7 +248,7 @@ async def test_delete_book(async_session):
     token = create_admin_access_token(test_admin)
     headers = {"Authorization": f"Bearer {token}"}
 
-    await add_book_to_db(async_session)
+    await add_books_to_db(async_session)
     book_id = 1
     async with AsyncClient(
         transport=ASGITransport(app=app),

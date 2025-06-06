@@ -13,7 +13,7 @@ from app.schemas.admin import (
     AdminSchema,
     AdminGetUserSchema,
 )
-from app.schemas.book import BookAddSchema, BookSchema, BookEditSchema
+from app.schemas.book import BookAddSchema, BookSchema, BookEditSchema, BookGetSchema
 
 from app.utils.jwt_utils import hash_password
 
@@ -85,13 +85,13 @@ async def add_book(
     session: AsyncSession,
     data: BookAddSchema,
     admin_verifier: AdminSchema,
-) -> dict[str, BookSchema]:
+) -> dict[str, BookGetSchema]:
     book_data_dict = data.model_dump()
     book = Book(**book_data_dict)
     session.add(book)
     await session.commit()
     await session.refresh(book)
-    return {"Successfully added book": BookSchema.model_validate(book)}
+    return {"Successfully added book": BookGetSchema.model_validate(book)}
 
 
 async def edit_book(
@@ -124,11 +124,11 @@ async def delete_book(
     session: AsyncSession,
     book_id: int,
     admin_verifier: AdminSchema,
-) -> dict[str, BookSchema]:
+) -> dict[str, BookGetSchema]:
     deleted_book = await get_book_from_db(session, book_id)
     await session.execute(
         delete(user_books_table).where(user_books_table.c.book_id == book_id)
     )
     await session.execute(delete(Book).where(Book.id == book_id))
     await session.commit()
-    return {"Successfully deleted book": BookSchema.model_validate(deleted_book)}
+    return {"Successfully deleted book": BookGetSchema.model_validate(deleted_book)}

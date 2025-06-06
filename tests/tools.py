@@ -3,6 +3,7 @@ from tests.test_models import Admin, User, Book
 
 
 book_return_value = {
+    "id": 1,
     "title": "test_title",
     "author": "test_author",
     "genre": "test_genre",
@@ -11,26 +12,51 @@ book_return_value = {
     "price": 100,
     "times_bought": 50,
     "times_returned": 5,
-    "rating": 0,
+    "rating": 0.0,
 }
 
 
-async def add_book_to_db(async_session):
-    book = Book(
-        id=1,
-        title="test_title",
-        author="test_author",
-        genre="test_genre",
-        description="test_description",
-        year=2025,
-        price=100,
-        times_bought=50,
-        times_returned=5,
-    )
-    async_session.add(book)
+async def add_books_to_db(async_session):
+    books = [
+        Book(
+            id=1,
+            title="test_title",
+            author="test_author",
+            genre="test_genre",
+            description="test_description",
+            year=2025,
+            price=100,
+            times_bought=50,
+            times_returned=5,
+        ),
+        Book(
+            id=2,
+            title="test_title2",
+            author="test_author2",
+            genre="test_genre2",
+            description="test_description2",
+            year=2030,
+            price=150,
+            times_bought=55,
+            times_returned=10,
+        ),
+        Book(
+            id=3,
+            title="test_title3",
+            author="test_author3",
+            genre="test_genre3",
+            description="test_description3",
+            year=2035,
+            price=200,
+            times_bought=60,
+            times_returned=15,
+        ),
+    ]
+    async_session.add_all(books)
     await async_session.commit()
-    await async_session.refresh(book)
-    return book
+    for book in books:
+        await async_session.refresh(book)
+    return books
 
 
 async def add_admin_to_db(async_session):

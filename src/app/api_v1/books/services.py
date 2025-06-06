@@ -12,7 +12,8 @@ from app.schemas.book import (
 
 
 async def get_all_books(
-    session: AsyncSession, filters: BookFilterSchema
+    session: AsyncSession,
+    filters: BookFilterSchema,
 ) -> list[BookGetSchema]:
     query = await session.execute(select(Book))
     books = query.scalars().all()

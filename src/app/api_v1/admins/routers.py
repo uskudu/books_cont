@@ -14,7 +14,7 @@ from app.schemas.admin import (
     AdminSchema,
     AdminGetUserSchema,
 )
-from app.schemas.book import BookAddSchema, BookSchema, BookEditSchema
+from app.schemas.book import BookAddSchema, BookSchema, BookEditSchema, BookGetSchema
 
 router = APIRouter(
     prefix="/admin",
@@ -63,7 +63,7 @@ async def add_book(
     session: Annotated[AsyncSession, Depends(get_session)],
     data: BookAddSchema,
     admin_verifier: AdminSchema = Depends(get_current_auth_admin),
-) -> dict[str, BookSchema]:
+) -> dict[str, BookGetSchema]:
     return await services.add_book(session, data, admin_verifier)
 
 
@@ -82,5 +82,5 @@ async def delete_book(
     session: Annotated[AsyncSession, Depends(get_session)],
     book_id: int,
     admin_verifier: AdminSchema = Depends(get_current_auth_admin),
-) -> dict[str, BookSchema]:
+) -> dict[str, BookGetSchema]:
     return await services.delete_book(session, book_id, admin_verifier)
