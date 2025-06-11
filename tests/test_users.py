@@ -7,7 +7,7 @@ from sqlalchemy import select
 from app.main import app
 from app.schemas.admin import AdminCreateJWTSchema
 from app.schemas.book import BookSchema, BookEditSchema
-from app.schemas.user import UserCreateJWTSchema
+from app.schemas.user import UserCreateJWTSchema, UserAddFundsSchema
 from app.utils.jwt_utils import create_admin_access_token, create_user_access_token
 from tests.tools import (
     add_books_to_db,
@@ -17,6 +17,15 @@ from tests.tools import (
     add_user_to_db,
 )
 from tests.test_models import User
+
+
+# tool
+async def user_auth(async_session):
+    usr = await add_user_to_db(async_session)
+    test_user = UserCreateJWTSchema.model_validate(usr)
+    token = create_user_access_token(test_user)
+    headers = {"Authorization": f"Bearer {token}"}
+    return headers
 
 
 @pytest.mark.asyncio
@@ -82,10 +91,7 @@ async def test_sign_in(async_session):
 
 @pytest.mark.asyncio
 async def test_get_my_data(async_session):
-    usr = await add_user_to_db(async_session)
-    test_user = UserCreateJWTSchema.model_validate(usr)
-    token = create_user_access_token(test_user)
-    headers = {"Authorization": f"Bearer {token}"}
+    headers = await user_auth(async_session)
 
     async with AsyncClient(
         transport=ASGITransport(app=app),
@@ -105,3 +111,32 @@ async def test_get_my_data(async_session):
     assert response_data["username"] == "test_user1"
     assert response_data["money"] == 777
     assert response_data["bought_books"] == []
+
+
+@pytest.mark.asyncio
+async def test_add_money(async_session):
+    headers = await user_auth(async_session)
+    amount = UserAddFundsSchema(amount=223)
+
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+    ) as ac:
+        response = await ac.post(
+            url="/user/me/add-funds",
+            headers=headers,
+            json=amount.model_dump(),
+        )
+
+    assert (
+        response.status_code == 200
+    ), f"Expected 200, got {response.status_code}: {response.json()}"
+    response_data = response.json()
+    assert response_data["message"] == "Funds added"
+    assert response_data["new_balance"] == 1000
+
+    result = await async_session.execute(
+        select(User).where(User.username == "test_user1")
+    )
+    saved_user = result.scalar_one_or_none()
+    assert saved_user.money == 1000

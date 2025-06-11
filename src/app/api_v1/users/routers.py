@@ -56,7 +56,7 @@ async def get_my_data(
 @router.post("/me/add-funds", response_model=UserAddFundsResponseSchema)
 async def add_money(
     session: Annotated[AsyncSession, Depends(get_session)],
-    data: Annotated[UserAddFundsSchema, Depends()],
+    data: UserAddFundsSchema,
     user_verifier: UserSchema = Depends(get_current_auth_user),
 ) -> UserAddFundsResponseSchema:
     return await services.add_money(session, data, user_verifier)
