@@ -81,3 +81,8 @@ class UserAddFundsSchema(BaseModel):
 class UserAddFundsResponseSchema(BaseModel):
     message: str
     new_balance: int
+
+
+class DeleteAccountResponse(BaseModel):
+    success: bool
+    message: str

@@ -1,9 +1,11 @@
 import uuid
 
 from fastapi import HTTPException, status
+from sqlalchemy import delete
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import IntegrityError
 
+from app.database import user_books_table
 from app.database.models import User, UserActions
 from app.schemas.admin import AdminCreateJWTSchema
 from app.schemas.jwt import TokenInfoSchema
@@ -11,6 +13,7 @@ from app.schemas.user import (
     UserGetSchema,
     UserAddFundsResponseSchema,
     UserCreateJWTSchema,
+    DeleteAccountResponse,
 )
 from app.utils import jwt_utils
 from app.utils.jwt_funcs import get_admin_from_db_by_username
@@ -211,22 +214,26 @@ async def delete_account(
     session: AsyncSession,
     data: UserDeleteSchema,
     user_verifier: UserSchema,
-) -> dict[str, str]:
+) -> DeleteAccountResponse:
     if not jwt_utils.validate_password(data.password, user_verifier.password):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid password"
         )
-    user = await get_user_from_db_by_uid(session, user_verifier.user_id)
-    user.active = False  # delete user (deactivate)
 
-    # update user_actions in db
-    new_action = {
-        "user_id": user_verifier.user_id,
-        "action_type": "delete_account",
-        "details": "deleted account",
-        "total": None,
-    }
-    action = UserActions(**new_action)
-    session.add(action)
+    await session.execute(
+        delete(user_books_table).where(
+            user_books_table.c.user_id == user_verifier.user_id
+        )
+    )
+    await session.execute(
+        delete(UserActions)
+        .where(UserActions.user_id == user_verifier.user_id)
+        .execution_options(is_delete_using=True)
+    )
+    await session.execute(
+        delete(User)
+        .where(User.user_id == user_verifier.user_id)
+        .execution_options(is_delete_using=True)
+    )
     await session.commit()
-    return {"success": True, "message": "Account deleted"}
+    return DeleteAccountResponse(success=True, message="account deleted!")

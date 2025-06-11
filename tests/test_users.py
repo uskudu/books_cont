@@ -1,21 +1,14 @@
-from http.client import responses
-
+import bcrypt
 import pytest
 from httpx import AsyncClient, ASGITransport
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
-from app.api_v1.users import services
 from app.main import app
-from app.schemas.admin import AdminCreateJWTSchema
-from app.schemas.book import BookSchema, BookEditSchema
-from app.schemas.user import UserCreateJWTSchema, UserAddFundsSchema
-from app.utils.jwt_utils import create_admin_access_token, create_user_access_token
+from app.schemas.user import UserCreateJWTSchema, UserAddFundsSchema, UserDeleteSchema
+from app.utils.jwt_utils import create_user_access_token
 from tests.tools import (
     add_books_to_db,
-    add_admin_to_db,
-    add_users_to_db,
-    book_return_value,
     add_user_to_db,
 )
 from tests.test_models import User, Book
@@ -226,3 +219,39 @@ async def test_return_book(async_session):
     assert saved_book.title == title
     assert saved_book.author == author
     assert saved_book.year == 2025
+
+
+@pytest.mark.asyncio
+async def test_delete_account(async_session):
+    headers = await user_auth(async_session)
+    pswd = UserDeleteSchema(password="test_password")
+
+    result = await async_session.execute(select(User).where(User.user_id == "test_uid"))
+    saved_user = result.scalar_one_or_none()
+    assert saved_user is not None
+
+    hashed_password = bcrypt.hashpw("test_password".encode(), bcrypt.gensalt()).decode()
+    saved_user.password = hashed_password
+    await async_session.commit()
+
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+    ) as ac:
+        response = await ac.request(
+            method="DELETE",
+            url=f"/user/me",
+            headers=headers,
+            json=pswd.model_dump(),
+        )
+
+    assert (
+        response.status_code == 200
+    ), f"Expected 200, got {response.status_code}: {response.json()}"
+    response_data = response.json()
+    assert response_data["success"] == True
+    assert response_data["message"] == "account deleted!"
+
+    result = await async_session.execute(select(User).where(User.user_id == "test_uid"))
+    saved_user = result.scalar_one_or_none()
+    assert saved_user is None

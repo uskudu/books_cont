@@ -6,7 +6,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.api_v1.users import services
 from app.database import get_session
 from app.schemas.jwt import TokenInfoSchema
-from app.schemas.user import UserAddFundsResponseSchema, UserGetSchema
+from app.schemas.user import (
+    UserAddFundsResponseSchema,
+    UserGetSchema,
+    DeleteAccountResponse,
+)
 from app.utils.jwt_funcs import get_current_auth_user
 from app.schemas.user import (
     UserSchema,
@@ -80,10 +84,10 @@ async def return_book(
     return await services.return_book(session, book_id, user_verifier)
 
 
-@router.delete("/me")
+@router.delete("/me", response_model=DeleteAccountResponse)
 async def delete_account(
-    data: Annotated[UserDeleteSchema, Depends()],
+    data: UserDeleteSchema,
     session: Annotated[AsyncSession, Depends(get_session)],
     user_verifier: UserSchema = Depends(get_current_auth_user),
-) -> dict[str, str]:
+) -> DeleteAccountResponse:
     return await services.delete_account(session, data, user_verifier)

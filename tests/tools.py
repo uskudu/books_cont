@@ -80,6 +80,7 @@ async def add_user_to_db(async_session):
         role="user",
         money=777,
     )
+
     async_session.add(user)
     await async_session.commit()
     await async_session.refresh(user)
