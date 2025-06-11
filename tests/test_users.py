@@ -16,7 +16,7 @@ from tests.tools import (
     book_return_value,
     add_user_to_db,
 )
-from tests.test_models import User
+from tests.test_models import User, Book
 
 
 # tool
@@ -140,3 +140,39 @@ async def test_add_money(async_session):
     )
     saved_user = result.scalar_one_or_none()
     assert saved_user.money == 1000
+
+
+@pytest.mark.asyncio
+async def test_buy_book(async_session):
+    await add_books_to_db(async_session)
+    headers = await user_auth(async_session)
+    book_id = 1
+
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+    ) as ac:
+        response = await ac.post(
+            url=f"/user/me/purchase-book/{book_id}",
+            headers=headers,
+        )
+
+    assert (
+        response.status_code == 200
+    ), f"Expected 200, got {response.status_code}: {response.json()}"
+    response_data = response.json()
+
+    title = "test_title"
+    author = "test_author"
+    year = 2025
+
+    assert response_data["message"] == "process complete!"
+    assert response_data["bought"]["title"] == title
+    assert response_data["bought"]["author"] == author
+    assert response_data["bought"]["year"] == year
+
+    result = await async_session.execute(select(Book).where(Book.id == book_id))
+    saved_book = result.scalar_one_or_none()
+    assert saved_book.title == title
+    assert saved_book.author == author
+    assert saved_book.year == 2025

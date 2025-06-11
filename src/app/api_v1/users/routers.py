@@ -62,21 +62,21 @@ async def add_money(
     return await services.add_money(session, data, user_verifier)
 
 
-@router.post("/me/purchase-book")
+@router.post("/me/purchase-book/{book_id}")
 async def buy_book(
     book_id: int,
     session: Annotated[AsyncSession, Depends(get_session)],
     user_verifier: UserSchema = Depends(get_current_auth_user),
-) -> dict[str, str]:
+) -> dict[str, str | dict]:
     return await services.buy_book(session, book_id, user_verifier)
 
 
-@router.post("/me/return-book")
+@router.post("/me/return-book/{book_id}")
 async def return_book(
     session: Annotated[AsyncSession, Depends(get_session)],
     book_id: int,
     user_verifier: UserSchema = Depends(get_current_auth_user),
-) -> dict[str, str]:
+) -> dict[str, str | dict]:
     return await services.return_book(session, book_id, user_verifier)
 
 
