@@ -13,6 +13,7 @@ from app.schemas.admin import (
     AdminGetSchema,
     AdminSchema,
     AdminGetUserSchema,
+    AddBookResponseSchema,
 )
 from app.schemas.book import BookAddSchema, BookSchema, BookEditSchema, BookGetSchema
 
@@ -58,12 +59,12 @@ async def get_all_admins(
     return await services.get_all_admins(session, admin_verifier)
 
 
-@router.post("/books")
+@router.post("/books", response_model=AddBookResponseSchema)
 async def add_book(
     session: Annotated[AsyncSession, Depends(get_session)],
     data: BookAddSchema,
     admin_verifier: AdminSchema = Depends(get_current_auth_admin),
-) -> dict[str, BookGetSchema]:
+) -> AddBookResponseSchema:
     return await services.add_book(session, data, admin_verifier)
 
 

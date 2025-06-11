@@ -12,6 +12,7 @@ from app.schemas.admin import (
     AdminGetSchema,
     AdminSchema,
     AdminGetUserSchema,
+    AddBookResponseSchema,
 )
 from app.schemas.book import BookAddSchema, BookSchema, BookEditSchema, BookGetSchema
 
@@ -85,13 +86,17 @@ async def add_book(
     session: AsyncSession,
     data: BookAddSchema,
     admin_verifier: AdminSchema,
-) -> dict[str, BookGetSchema]:
+) -> AddBookResponseSchema:
     book_data_dict = data.model_dump()
     book = Book(**book_data_dict)
     session.add(book)
     await session.commit()
     await session.refresh(book)
-    return {"Successfully added book": BookGetSchema.model_validate(book)}
+    # return {"Successfully added book": BookGetSchema.model_validate(book)}
+    return AddBookResponseSchema(
+        message="Successfully added book",
+        book=BookGetSchema.model_validate(book),
+    )
 
 
 async def edit_book(

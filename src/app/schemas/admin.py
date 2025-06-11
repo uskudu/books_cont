@@ -1,6 +1,6 @@
 from pydantic import BaseModel, ConfigDict
 
-from app.schemas.book import BookSchema
+from app.schemas.book import BookSchema, BookGetSchema
 from app.schemas.account import AccountSchema
 from app.schemas.user import UserActionsGetSchema, BookOwnedSchema
 
@@ -48,3 +48,8 @@ class AdminEditedBookResponseSchema(BaseModel):
 class AdminDeletedBookResponseSchema(BaseModel):
     message: str
     book: BookSchema
+
+
+class AddBookResponseSchema(BaseModel):
+    message: str
+    book: BookGetSchema
