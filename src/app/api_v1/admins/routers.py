@@ -15,6 +15,7 @@ from app.schemas.admin import (
     AdminGetUserSchema,
     AddBookResponseSchema,
     EditBookResponseSchema,
+    DeleteBookResponseSchema,
 )
 from app.schemas.book import BookAddSchema, BookSchema, BookEditSchema, BookGetSchema
 
@@ -79,10 +80,10 @@ async def edit_book(
     return await services.edit_book(session, book_id, data, admin_verifier)
 
 
-@router.delete("/books/{book_id}")
+@router.delete("/books/{book_id}", response_model=DeleteBookResponseSchema)
 async def delete_book(
     session: Annotated[AsyncSession, Depends(get_session)],
     book_id: int,
     admin_verifier: AdminSchema = Depends(get_current_auth_admin),
-) -> dict[str, BookGetSchema]:
+) -> DeleteBookResponseSchema:
     return await services.delete_book(session, book_id, admin_verifier)

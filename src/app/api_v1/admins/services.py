@@ -14,6 +14,7 @@ from app.schemas.admin import (
     AdminGetUserSchema,
     AddBookResponseSchema,
     EditBookResponseSchema,
+    DeleteBookResponseSchema,
 )
 from app.schemas.book import BookAddSchema, BookSchema, BookEditSchema, BookGetSchema
 
@@ -133,11 +134,14 @@ async def delete_book(
     session: AsyncSession,
     book_id: int,
     admin_verifier: AdminSchema,
-) -> dict[str, BookGetSchema]:
+) -> DeleteBookResponseSchema:
     deleted_book = await get_book_from_db(session, book_id)
     await session.execute(
         delete(user_books_table).where(user_books_table.c.book_id == book_id)
     )
     await session.execute(delete(Book).where(Book.id == book_id))
     await session.commit()
-    return {"Successfully deleted book": BookGetSchema.model_validate(deleted_book)}
+    return DeleteBookResponseSchema(
+        message="Successfully deleted book",
+        book=BookGetSchema.model_validate(deleted_book),
+    )

@@ -58,3 +58,8 @@ class AddBookResponseSchema(BaseModel):
 class EditBookResponseSchema(BaseModel):
     message: str
     book: BookGetSchema
+
+
+class DeleteBookResponseSchema(BaseModel):
+    message: str
+    book: BookGetSchema
