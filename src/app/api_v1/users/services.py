@@ -14,6 +14,7 @@ from app.schemas.user import (
     UserAddFundsResponseSchema,
     UserCreateJWTSchema,
     DeleteAccountResponse,
+    BuyBookResponseSchema,
 )
 from app.utils import jwt_utils
 from app.utils.jwt_funcs import get_admin_from_db_by_username
@@ -31,8 +32,7 @@ from app.schemas.user import (
     UserAddFundsSchema,
 )
 from app.schemas.account import AccountSigninSchema
-from app.schemas.book import BookSchema
-
+from app.schemas.book import BookSchema, BookGetSchema
 
 from app.api_v1.users.crud import get_user_from_db_by_uid, get_user_from_db_by_username
 from app.api_v1.books.crud import get_book_from_db
@@ -131,7 +131,7 @@ async def buy_book(
     session: AsyncSession,
     book_id: int,
     user_verifier: UserSchema,
-) -> dict[str, str]:
+) -> BuyBookResponseSchema:
     user_from_db = await get_user_from_db_by_uid(session, user_verifier.user_id)
     book_from_db = await get_book_from_db(session, book_id)
 
@@ -166,8 +166,10 @@ async def buy_book(
     await session.commit()
     await session.refresh(book_from_db)
 
-    book_schema = BookSchema.model_validate(book_from_db)
-    return {"message": "process complete!", "bought": book_schema.model_dump()}
+    return BuyBookResponseSchema(
+        message="process complete!",
+        book=BookGetSchema.model_validate(book_from_db),
+    )
 
 
 async def return_book(

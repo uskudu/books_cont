@@ -3,6 +3,7 @@ from datetime import datetime
 from pydantic import BaseModel, Field, ConfigDict
 
 from app.schemas.account import AccountSchema
+from app.schemas.book import BookGetSchema
 
 
 class BookOwnedSchema(BaseModel):
@@ -86,3 +87,8 @@ class UserAddFundsResponseSchema(BaseModel):
 class DeleteAccountResponse(BaseModel):
     success: bool
     message: str
+
+
+class BuyBookResponseSchema(BaseModel):
+    message: str
+    book: BookGetSchema

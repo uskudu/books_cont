@@ -162,9 +162,9 @@ async def test_buy_book(async_session):
     year = 2025
 
     assert response_data["message"] == "process complete!"
-    assert response_data["bought"]["title"] == title
-    assert response_data["bought"]["author"] == author
-    assert response_data["bought"]["year"] == year
+    assert response_data["book"]["title"] == title
+    assert response_data["book"]["author"] == author
+    assert response_data["book"]["year"] == year
 
     result = await async_session.execute(select(Book).where(Book.id == book_id))
     saved_book = result.scalar_one_or_none()
