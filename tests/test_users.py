@@ -1,3 +1,5 @@
+from http.client import responses
+
 import pytest
 from httpx import AsyncClient, ASGITransport
 from sqlalchemy import select
@@ -47,3 +49,30 @@ async def test_sign_up(async_session):
     assert saved_user is not None
     assert saved_user.username == "test_username"
     assert saved_user.money is not None
+
+
+@pytest.mark.asyncio
+async def test_sign_in(async_session):
+    await add_users_to_db(async_session)
+
+    signin_data = {
+        "username": "test_user1",
+        "password": "test_password",
+        "role": "user",
+        "money": 777,
+    }
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+    ) as ac:
+        response = await ac.post(
+            url="/user/sign-in",
+            data=signin_data,
+        )
+
+    assert (
+        response.status_code == 200
+    ), f"Expected 200, got {response.status_code}: {response.json()}"
+    response_data = response.json()
+    assert "access_token" in response_data
+    assert response_data["token_type"] == "Bearer"
