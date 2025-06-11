@@ -72,6 +72,20 @@ async def add_admin_to_db(async_session):
     return adm
 
 
+async def add_user_to_db(async_session):
+    user = User(
+        user_id="test_uid",
+        username="test_user1",
+        password="test_password",
+        role="user",
+        money=777,
+    )
+    async_session.add(user)
+    await async_session.commit()
+    await async_session.refresh(user)
+    return user
+
+
 async def add_users_to_db(async_session):
     users = [
         User(

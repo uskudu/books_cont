@@ -7,12 +7,14 @@ from sqlalchemy import select
 from app.main import app
 from app.schemas.admin import AdminCreateJWTSchema
 from app.schemas.book import BookSchema, BookEditSchema
-from app.utils.jwt_utils import create_admin_access_token
+from app.schemas.user import UserCreateJWTSchema
+from app.utils.jwt_utils import create_admin_access_token, create_user_access_token
 from tests.tools import (
     add_books_to_db,
     add_admin_to_db,
     add_users_to_db,
     book_return_value,
+    add_user_to_db,
 )
 from tests.test_models import User
 
@@ -53,7 +55,7 @@ async def test_sign_up(async_session):
 
 @pytest.mark.asyncio
 async def test_sign_in(async_session):
-    await add_users_to_db(async_session)
+    await add_user_to_db(async_session)
 
     signin_data = {
         "username": "test_user1",
@@ -76,3 +78,30 @@ async def test_sign_in(async_session):
     response_data = response.json()
     assert "access_token" in response_data
     assert response_data["token_type"] == "Bearer"
+
+
+@pytest.mark.asyncio
+async def test_get_my_data(async_session):
+    usr = await add_user_to_db(async_session)
+    test_user = UserCreateJWTSchema.model_validate(usr)
+    token = create_user_access_token(test_user)
+    headers = {"Authorization": f"Bearer {token}"}
+
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+    ) as ac:
+        response = await ac.get(
+            url="/user/me",
+            headers=headers,
+        )
+
+    assert (
+        response.status_code == 200
+    ), f"Expected 200, got {response.status_code}: {response.json()}"
+    response_data = response.json()
+
+    assert response_data["user_id"] == "test_uid"
+    assert response_data["username"] == "test_user1"
+    assert response_data["money"] == 777
+    assert response_data["bought_books"] == []
