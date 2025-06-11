@@ -11,6 +11,7 @@ from app.schemas.user import (
     UserGetSchema,
     DeleteAccountResponse,
     BuyBookResponseSchema,
+    ReturnBookResponseSchema,
 )
 from app.utils.jwt_funcs import get_current_auth_user
 from app.schemas.user import (
@@ -76,12 +77,12 @@ async def buy_book(
     return await services.buy_book(session, book_id, user_verifier)
 
 
-@router.post("/me/return-book/{book_id}")
+@router.post("/me/return-book/{book_id}", response_model=ReturnBookResponseSchema)
 async def return_book(
     session: Annotated[AsyncSession, Depends(get_session)],
     book_id: int,
     user_verifier: UserSchema = Depends(get_current_auth_user),
-) -> dict[str, str | dict]:
+) -> ReturnBookResponseSchema:
     return await services.return_book(session, book_id, user_verifier)
 
 

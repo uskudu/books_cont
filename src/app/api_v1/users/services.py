@@ -15,6 +15,7 @@ from app.schemas.user import (
     UserCreateJWTSchema,
     DeleteAccountResponse,
     BuyBookResponseSchema,
+    ReturnBookResponseSchema,
 )
 from app.utils import jwt_utils
 from app.utils.jwt_funcs import get_admin_from_db_by_username
@@ -176,7 +177,7 @@ async def return_book(
     session: AsyncSession,
     book_id: int,
     user_verifier: UserSchema,
-) -> dict[str, str]:
+) -> ReturnBookResponseSchema:
     user_from_db = await get_user_from_db_by_uid(session, user_verifier.user_id)
     book_from_db = await get_book_from_db(session, book_id)
 
@@ -208,8 +209,10 @@ async def return_book(
     await session.commit()
     await session.refresh(book_from_db)
 
-    book_schema = BookSchema.model_validate(book_from_db)
-    return {"message": "process complete!", "returned": book_schema.model_dump()}
+    return ReturnBookResponseSchema(
+        message="process complete!",
+        book=BookGetSchema.model_validate(book_from_db),
+    )
 
 
 async def delete_account(

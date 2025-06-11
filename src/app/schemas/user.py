@@ -92,3 +92,8 @@ class DeleteAccountResponse(BaseModel):
 class BuyBookResponseSchema(BaseModel):
     message: str
     book: BookGetSchema
+
+
+class ReturnBookResponseSchema(BaseModel):
+    message: str
+    book: BookGetSchema
