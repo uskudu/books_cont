@@ -229,7 +229,9 @@ async def test_edit_book(async_session):
         response.status_code == 200
     ), f"Expected 200, got {response.status_code}: {response.json()}"
     response_data = response.json()
-    assert response_data["Successfully updated book"] == {
+    assert response_data["message"] == "Successfully updated book"
+    assert response_data["book"] == {
+        "id": 1,
         "title": "edit_test_title",
         "author": "edit_test_author",
         "genre": "edit_test_genre",

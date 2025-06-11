@@ -53,3 +53,8 @@ class AdminDeletedBookResponseSchema(BaseModel):
 class AddBookResponseSchema(BaseModel):
     message: str
     book: BookGetSchema
+
+
+class EditBookResponseSchema(BaseModel):
+    message: str
+    book: BookGetSchema

@@ -13,6 +13,7 @@ from app.schemas.admin import (
     AdminSchema,
     AdminGetUserSchema,
     AddBookResponseSchema,
+    EditBookResponseSchema,
 )
 from app.schemas.book import BookAddSchema, BookSchema, BookEditSchema, BookGetSchema
 
@@ -92,7 +93,6 @@ async def add_book(
     session.add(book)
     await session.commit()
     await session.refresh(book)
-    # return {"Successfully added book": BookGetSchema.model_validate(book)}
     return AddBookResponseSchema(
         message="Successfully added book",
         book=BookGetSchema.model_validate(book),
@@ -104,7 +104,7 @@ async def edit_book(
     book_id: int,
     data: BookEditSchema,
     admin_verifier: AdminSchema,
-) -> dict[str, BookSchema]:
+) -> EditBookResponseSchema:
     try:
         book_from_db = await get_book_from_db(session, book_id)
         if not book_from_db:
@@ -116,7 +116,11 @@ async def edit_book(
             setattr(book_from_db, key, value)
         await session.commit()
         await session.refresh(book_from_db)
-        return {"Successfully updated book": BookSchema.model_validate(book_from_db)}
+
+        return EditBookResponseSchema(
+            message="Successfully updated book",
+            book=BookGetSchema.model_validate(book_from_db),
+        )
     except SQLAlchemyError as e:
         await session.rollback()
         raise HTTPException(
