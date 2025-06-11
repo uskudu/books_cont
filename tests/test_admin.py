@@ -191,7 +191,8 @@ async def test_add_book(async_session):
         response.status_code == 200
     ), f"Expected 200, got {response.status_code}: {response.json()}"
     response_data = response.json()
-    assert response_data["Successfully added book"] == book_return_value
+    assert response_data["message"] == "Successfully added book"
+    assert response_data["book"] == book_return_value
 
 
 @pytest.mark.asyncio
