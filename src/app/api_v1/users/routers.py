@@ -1,5 +1,5 @@
 from typing import Annotated
-from fastapi import APIRouter, Depends, Body, Form
+from fastapi import APIRouter, Depends, Form
 from fastapi_cache.decorator import cache
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -7,7 +7,7 @@ from app.api_v1.users import services
 from app.database import get_session
 from app.schemas.jwt import TokenInfoSchema
 from app.schemas.user import UserAddFundsResponseSchema, UserGetSchema
-from app.utils.jwt_funcs import validate_auth_user, get_current_auth_user
+from app.utils.jwt_funcs import get_current_auth_user
 from app.schemas.user import (
     UserSchema,
     UserSignupSchema,
@@ -28,7 +28,7 @@ router = APIRouter(
 @router.post("/sign-up")
 async def sign_up(
     session: Annotated[AsyncSession, Depends(get_session)],
-    data: Annotated[UserSignupSchema, Depends()],
+    data: UserSignupSchema,
 ) -> UserGetSchema:
     return await services.sign_up(session, data)
 
